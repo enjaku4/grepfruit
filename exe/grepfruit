@@ -1,0 +1,28 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift("#{__dir__}/../lib")
+
+require "optparse"
+require "grepfruit"
+
+options = {
+  path: ".",
+  regex: /TODO/,
+  exclude: ["log", "tmp", "vendor", "node_modules", "assets"]
+}
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: grepfruit [options] PATH"
+
+  opts.on("-r", "--regex REGEX", "Regex pattern to search for") do |regex|
+    options[:regex] = /#{regex}/
+  end
+
+  opts.on("-e", "--exclude x,y,z", Array, "Comma-separated list of files and directories to exclude") do |exclude|
+    options[:exclude] = exclude
+  end
+end.parse!
+
+options[:path] = ARGV[0] if ARGV[0]
+
+Grepfruit.run(**options)
