@@ -23,7 +23,7 @@ OptionParser.new do |opts|
     options[:exclude] = exclude.map! { |path| path.split("/") }
   end
 
-  opts.on("-s", "--search-hidden", TrueClass, "Search hidden files and directories") do |search_hidden|
+  opts.on("--search-hidden", TrueClass, "Search hidden files and directories") do |search_hidden|
     options[:search_hidden] = search_hidden
   end
 end.parse!
