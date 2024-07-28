@@ -1,39 +1,67 @@
 # Grepfruit
 
-TODO: Delete this and the text below, and describe your gem
-
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/grepfruit`. To experiment with that code, run `bin/console` for an interactive prompt.
+Grepfruit is a Ruby gem for searching files within a directory for a specified regular expression pattern, with options to exclude certain files or directories from the search and colorized output for better readability.
 
 ## Installation
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
+Add this line to your application's Gemfile:
 
-Install the gem and add to the application's Gemfile by executing:
+```ruby
+gem 'grepfruit'
+```
 
-    $ bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+And then execute:
 
-If bundler is not being used to manage dependencies, install the gem by executing:
-
-    $ gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+```shell
+bundle install
+```
 
 ## Usage
 
-TODO: Write usage instructions here
+You can use Grepfruit from the command line to search for a regex pattern within files in a specified directory.
 
-## Development
+```shell
+grepfruit [options] PATH
+```
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+### Options
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+- `-r, --regex REGEX: Regex pattern to search for. Defaults to /TODO/.
+- `-e, --exclude x,y,z: Comma-separated list of files and directories to exclude from the search. Defaults to log, tmp, vendor, node_modules, assets.
+
+### Examples
+
+Search for the pattern `TODO` in the current directory, excluding the default directories:
+
+```shell
+grepfruit
+```
+
+Search for a custom pattern in another directory, while specifying files and directories to exclude:
+
+```shell
+grepfruit -r 'FIXME|TODO' -e 'bin,log,Rakefile,Gemfile.lock' /path/to/directory
+```
+
+## Problems?
+
+Facing a problem or want to suggest an enhancement?
+
+- **Open a Discussion**: If you have a question, experience difficulties using the gem, or have a suggestion for improvements, feel free to use the Discussions section.
+
+Encountered a bug?
+
+- **Create an Issue**: If you've identified a bug, please create an issue. Be sure to provide detailed information about the problem, including the steps to reproduce it.
+- **Contribute a Solution**: Found a fix for the issue? Feel free to create a pull request with your changes.
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/grepfruit. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/[USERNAME]/grepfruit/blob/master/CODE_OF_CONDUCT.md).
+Before creating an issue or a pull request, please read the [contributing guidelines](https://github.com/enjaku4/grepfruit/blob/master/CONTRIBUTING.md).
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+The gem is available as open source under the terms of the [MIT License](https://github.com/enjaku4/grepfruit/blob/master/LICENSE.txt).
 
 ## Code of Conduct
 
-Everyone interacting in the Grepfruit project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/grepfruit/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the Grepfruit project is expected to follow the [code of conduct](https://github.com/enjaku4/grepfruit/blob/master/CODE_OF_CONDUCT.md).
