@@ -20,7 +20,7 @@ jobs:
           ruby-version: 3.0
           bundler-cache: true
       - name: Run Todo
-        run: ./exe/grepfruit -e 'exe/grepfruit,vendor'
+        run: ./exe/grepfruit -e 'exe/grepfruit,vendor,README.md'
 
   linting:
     runs-on: ubuntu-latest
