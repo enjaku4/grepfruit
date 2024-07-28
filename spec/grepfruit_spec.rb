@@ -14,11 +14,11 @@ RSpec.describe Grepfruit do
     subject { `./exe/grepfruit` }
 
     it { is_expected.to include("Searching for /TODO/...") }
-    it { is_expected.to include("README.md:34") }
+    it { is_expected.to include("README.md:36") }
     it { is_expected.to include("exe/grepfruit:10") }
     it { is_expected.to include("Search for the pattern `TODO` in the current directory, excluding the default directories:") }
     it { is_expected.to include("18 files checked") }
-    it { is_expected.to include("9 matches found") }
+    it { is_expected.to include("10 matches found") }
     it { is_expected.not_to include("tmp/foo.txt:") }
     it { is_expected.not_to include(".github") }
   end
@@ -64,7 +64,7 @@ RSpec.describe Grepfruit do
     subject { `./exe/grepfruit -e 'exe/grepfruit,vendor'` }
 
     it { is_expected.not_to include("exe/grepfruit") }
-    it { is_expected.to include("9 matches found") }
+    it { is_expected.to include("10 matches found") }
   end
 
   context "when only a part of the file name is excluded" do
