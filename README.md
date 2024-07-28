@@ -31,8 +31,9 @@ bundle exec grepfruit [options] PATH
 
 ### Options
 
-- `-r, --regex REGEX: Regex pattern to search for. Defaults to /TODO/.
-- `-e, --exclude x,y,z: Comma-separated list of files and directories to exclude from the search. Defaults to log, tmp, vendor, node_modules, assets.
+- `-r, --regex REGEX`: Regex pattern to search for. Defaults to /TODO/.
+- `-e, --exclude x,y,z`: Comma-separated list of files and directories to exclude from the search. Defaults to log, tmp, vendor, node_modules, assets.
+- `--search-hidden`: Search hidden files and directories. Defaults to false.
 
 ### Examples
 
@@ -46,6 +47,12 @@ Search for a custom pattern in another directory, while specifying files and dir
 
 ```shell
 bundle exec grepfruit -r 'FIXME|TODO' -e 'bin,log,Rakefile,Gemfile.lock,foo/bar.baz' /path/to/directory
+```
+
+Search for a pattern in the current directory, including hidden files and directories:
+
+```shell
+bundle exec grepfruit -r 'FIXME|TODO' --search-hidden
 ```
 
 ## Problems?
