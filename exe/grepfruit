@@ -19,7 +19,7 @@ OptionParser.new do |opts|
   end
 
   opts.on("-e", "--exclude x,y,z", Array, "Comma-separated list of files and directories to exclude") do |exclude|
-    options[:exclude] = exclude
+    options[:exclude] = exclude.map { |path| path.split("/") }
   end
 end.parse!
 

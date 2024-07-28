@@ -10,24 +10,20 @@ module Grepfruit
 
     puts "Searching for #{regex.inspect}...\n\n"
 
-    Find.find(dir) do |file|
-      basename = File.basename(file)
+    Find.find(dir) do |pth|
+      Find.prune if exclude.any? { |e| pth.split("/").last(e.length) == e } || File.basename(pth).start_with?(".")
 
-      if exclude.include?(basename) || basename.start_with?(".")
-        File.directory?(path) ? Find.prune : next
-      end
-
-      next if File.directory?(file)
+      next if File.directory?(pth)
 
       files += 1
 
       match = false
 
-      File.foreach(file).with_index do |line, line_num|
+      File.foreach(pth).with_index do |line, line_num|
         next unless line.valid_encoding?
 
         if line.match?(regex)
-          lines << "\e[36m#{Pathname.new(file).relative_path_from(Pathname.new(dir))}:#{line_num + 1}\e[0m: #{line.strip}"
+          lines << "\e[36m#{Pathname.new(pth).relative_path_from(Pathname.new(dir))}:#{line_num + 1}\e[0m: #{line.strip}"
           match = true
         end
       end
