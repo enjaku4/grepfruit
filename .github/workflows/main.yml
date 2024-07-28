@@ -19,7 +19,7 @@ jobs:
         with:
           ruby-version: 3.0
           bundler-cache: true
-      - name: Run Todo
+      - name: Run Todo Search
         run: ./exe/grepfruit -e 'exe/grepfruit,vendor,README.md,grepfruit_spec.rb'
 
   linting:
