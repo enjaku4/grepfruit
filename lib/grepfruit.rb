@@ -39,7 +39,7 @@ module Grepfruit
     else
       puts "Matches:\n\n"
       puts "#{lines.join("\n")}\n\n"
-      puts "#{files} files checked, \e[31m#{lines.size} match#{'es' if lines.size > 1} found\e[0m"
+      puts "#{files} file#{'s' if files > 1} checked, \e[31m#{lines.size} match#{'es' if lines.size > 1} found\e[0m"
       exit(1)
     end
   end
