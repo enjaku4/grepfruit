@@ -8,7 +8,7 @@ require "grepfruit"
 options = {
   path: Dir.pwd,
   regex: /TODO/,
-  exclude: ["log", "tmp", "vendor", "node_modules", "assets"]
+  exclude: [["log"], ["tmp"], ["vendor"], ["node_modules"], ["assets"]]
 }
 
 OptionParser.new do |opts|
@@ -19,7 +19,7 @@ OptionParser.new do |opts|
   end
 
   opts.on("-e", "--exclude x,y,z", Array, "Comma-separated list of files and directories to exclude") do |exclude|
-    options[:exclude] = exclude.map { |path| path.split("/") }
+    options[:exclude] = exclude.map! { |path| path.split("/") }
   end
 end.parse!
 
