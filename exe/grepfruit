@@ -6,7 +6,7 @@ require "optparse"
 require "grepfruit"
 
 options = {
-  path: ".",
+  path: Dir.pwd,
   regex: /TODO/,
   exclude: ["log", "tmp", "vendor", "node_modules", "assets"]
 }
