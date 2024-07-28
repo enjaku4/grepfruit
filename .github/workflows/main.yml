@@ -8,6 +8,20 @@ on:
   pull_request:
 
 jobs:
+  todo:
+    runs-on: ubuntu-latest
+
+    name: Todo
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.0
+          bundler-cache: true
+      - name: Run Todo
+        run: ./exe/grepfruit -e 'exe/grepfruit'
+
   linting:
     runs-on: ubuntu-latest
 
