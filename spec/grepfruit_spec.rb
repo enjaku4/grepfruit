@@ -18,7 +18,7 @@ RSpec.describe Grepfruit do
     it { is_expected.to include("exe/grepfruit:10") }
     it { is_expected.to include("Search for the pattern `TODO` in the current directory, excluding the default directories:") }
     it { is_expected.to include("18 files checked") }
-    it { is_expected.to include("8 matches found") }
+    it { is_expected.to include("9 matches found") }
     it { is_expected.not_to include("tmp/foo.txt:") }
     it { is_expected.not_to include(".github") }
   end
@@ -64,7 +64,7 @@ RSpec.describe Grepfruit do
     subject { `./exe/grepfruit -e 'exe/grepfruit,vendor'` }
 
     it { is_expected.not_to include("exe/grepfruit") }
-    it { is_expected.to include("8 matches found") }
+    it { is_expected.to include("9 matches found") }
   end
 
   context "when only a part of the file name is excluded" do
@@ -78,5 +78,12 @@ RSpec.describe Grepfruit do
 
     it { is_expected.to include(".github/workflows/main.yml:21") }
     it { is_expected.to include("bundler-cache: true") }
+  end
+
+  context "when hidden files search is disabled and a hidden file is excluded" do
+    subject { `./exe/grepfruit -r 'package-ecosystem' -e '.github/dependabot.yml' --search-hidden` }
+
+    it { is_expected.not_to include("dependabot.yml:") }
+    it { is_expected.to include("package-ecosystem") }
   end
 end
