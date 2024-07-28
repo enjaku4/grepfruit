@@ -3,7 +3,7 @@ require "pathname"
 require "find"
 
 module Grepfruit
-  def self.run(path:, regex:, exclude:)
+  def self.run(path:, regex:, exclude:, search_hidden:)
     lines = []
     files = 0
     dir = path
@@ -11,7 +11,7 @@ module Grepfruit
     puts "Searching for #{regex.inspect}...\n\n"
 
     Find.find(dir) do |pth|
-      Find.prune if exclude.any? { |e| pth.split("/").last(e.length) == e } || File.basename(pth).start_with?(".")
+      Find.prune if exclude.any? { |e| pth.split("/").last(e.length) == e } || !search_hidden && File.basename(pth).start_with?(".")
 
       next if File.directory?(pth)
 

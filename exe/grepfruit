@@ -8,18 +8,23 @@ require "grepfruit"
 options = {
   path: Dir.pwd,
   regex: /TODO/,
-  exclude: [["log"], ["tmp"], ["vendor"], ["node_modules"], ["assets"]]
+  exclude: [["log"], ["tmp"], ["vendor"], ["node_modules"], ["assets"]],
+  search_hidden: false
 }
 
 OptionParser.new do |opts|
   opts.banner = "Usage: grepfruit [options] PATH"
 
-  opts.on("-r", "--regex REGEX", "Regex pattern to search for") do |regex|
-    options[:regex] = /#{regex}/
+  opts.on("-r", "--regex REGEX", Regexp, "Regex pattern to search for") do |regex|
+    options[:regex] = regex
   end
 
   opts.on("-e", "--exclude x,y,z", Array, "Comma-separated list of files and directories to exclude") do |exclude|
     options[:exclude] = exclude.map! { |path| path.split("/") }
+  end
+
+  opts.on("-s", "--search-hidden", TrueClass, "Search hidden files and directories") do |search_hidden|
+    options[:search_hidden] = search_hidden
   end
 end.parse!
 
