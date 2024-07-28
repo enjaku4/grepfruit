@@ -26,7 +26,7 @@ bundle install
 You can use Grepfruit from the command line to search for a regex pattern within files in a specified directory.
 
 ```shell
-grepfruit [options] PATH
+bundle exec grepfruit [options] PATH
 ```
 
 ### Options
@@ -39,13 +39,13 @@ grepfruit [options] PATH
 Search for the pattern `TODO` in the current directory, excluding the default directories:
 
 ```shell
-grepfruit
+bundle exec grepfruit
 ```
 
 Search for a custom pattern in another directory, while specifying files and directories to exclude:
 
 ```shell
-grepfruit -r 'FIXME|TODO' -e 'bin,log,Rakefile,Gemfile.lock' /path/to/directory
+bundle exec grepfruit -r 'FIXME|TODO' -e 'bin,log,Rakefile,Gemfile.lock' /path/to/directory
 ```
 
 ## Problems?
