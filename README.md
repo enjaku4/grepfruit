@@ -46,7 +46,7 @@ bundle exec grepfruit
 Search for a custom pattern in another directory, while specifying files and directories to exclude:
 
 ```shell
-bundle exec grepfruit -r 'FIXME|TODO' -e 'bin,log,Rakefile,Gemfile.lock,foo/bar.baz' /path/to/directory
+bundle exec grepfruit -r 'FIXME|TODO' -e 'log,Gemfile.lock,foo/bar.baz' /path/to/directory
 ```
 
 Search for a pattern in the current directory, including hidden files and directories:
