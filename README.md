@@ -2,6 +2,8 @@
 
 Grepfruit is a Ruby gem for searching files within a directory for a specified regular expression pattern, with options to exclude certain files or directories from the search and colorized output for better readability.
 
+<img width="416" alt="Screenshot 2024-07-28 at 03 52 37" src="https://github.com/user-attachments/assets/95b26b81-dcc1-430b-ac44-641251cb84b6">
+
 ## Installation
 
 Add this line to your application's Gemfile:
