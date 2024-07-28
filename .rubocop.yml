@@ -23,6 +23,12 @@ Metrics/MethodLength:
 Metrics/PerceivedComplexity:
   Enabled: false
 
+RSpec/ExampleWording:
+  Enabled: false
+
+RSpec/NamedSubject:
+  Enabled: false
+
 Style/Documentation:
   Enabled: false
 
