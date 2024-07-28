@@ -5,7 +5,7 @@ RSpec.describe Grepfruit do
     it { is_expected.to include("Searching for /TODO/...") }
     it { is_expected.to include("README.md:34") }
     it { is_expected.to include("Search for the pattern `TODO` in the current directory, excluding the default directories:") }
-    it { is_expected.to include("19 files checked") }
+    it { is_expected.to include("18 files checked") }
     it { is_expected.to include("6 matches found") }
   end
 
