@@ -15,6 +15,6 @@ Gem::Specification.new do |spec|
   ] + `git ls-files | grep -E '^(lib|exe)'`.split("\n")
 
   spec.bindir = "exe"
-  spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
+  spec.executables = ["grepfruit"]
   spec.require_paths = ["lib"]
 end
