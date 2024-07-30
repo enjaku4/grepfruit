@@ -23,7 +23,7 @@ RSpec.describe Grepfruit do
     it { is_expected.to include("README.md:42") }
     it { is_expected.to include("spec/grepfruit_spec.rb:6") }
     it { is_expected.to include("TODO: bar") }
-    it { is_expected.to include("19 files checked") }
+    it { is_expected.to include("17 files checked") }
     it { is_expected.to include("21 matches found") }
     it { is_expected.to include("subject { `./exe/grepfruit -r 'TODO' -e 'vendor'` }") }
     it { is_expected.not_to include("tmp/foo.txt:") }
@@ -38,7 +38,7 @@ RSpec.describe Grepfruit do
     it { is_expected.to include("README.md:42") }
     it { is_expected.to include("spec/grepfruit_spec.rb:6") }
     it { is_expected.to include("TODO: bar") }
-    it { is_expected.to include("19 files checked") }
+    it { is_expected.to include("17 files checked") }
     it { is_expected.to include("21 matches found") }
     it { is_expected.to include("subject { `./exe/grepfruit -r 'TODO' -e 'vendor'` }") }
     it { is_expected.not_to include("tmp/foo.txt:") }
@@ -65,7 +65,7 @@ RSpec.describe Grepfruit do
   context "when no matches are found" do
     subject { `./exe/grepfruit -e 'grepfruit_spec.rb,vendor,Gemfile.lock' -r FOOBAR` }
 
-    it { is_expected.to include("19 files checked") }
+    it { is_expected.to include("17 files checked") }
     it { is_expected.to include("no matches found") }
   end
 
