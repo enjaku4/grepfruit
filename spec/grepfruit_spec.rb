@@ -13,64 +13,95 @@ RSpec.describe Grepfruit do
   context "when all parameters are not specified" do
     subject { `./exe/grepfruit` }
 
+    it { is_expected.to include("Error: You must specify a regex pattern using the -r or --regex option.") }
+  end
+
+  context "when regex is specified" do
+    subject { `./exe/grepfruit -r 'TODO' -e 'tmp,vendor,Gemfile.lock'` }
+
     it { is_expected.to include("Searching for /TODO/...") }
-    it { is_expected.to include("README.md:36") }
-    it { is_expected.to include("exe/grepfruit:10") }
-    it { is_expected.to include("Search for the pattern `TODO` in the current directory, excluding the default directories:") }
-    it { is_expected.to include("18 files checked") }
-    it { is_expected.to include("10 matches found") }
+    it { is_expected.to include("README.md:42") }
+    it { is_expected.to include("spec/grepfruit_spec.rb:6") }
+    it { is_expected.to include("TODO: bar") }
+    it { is_expected.to include("19 files checked") }
+    it { is_expected.to include("21 matches found") }
+    it { is_expected.to include("subject { `./exe/grepfruit -r 'TODO' -e 'vendor'` }") }
     it { is_expected.not_to include("tmp/foo.txt:") }
     it { is_expected.not_to include(".github") }
+    it { is_expected.not_to include("vendor/") }
+  end
+
+  context "when full option names are specified" do
+    subject { `./exe/grepfruit --regex 'TODO' --exclude 'tmp,vendor,Gemfile.lock'` }
+
+    it { is_expected.to include("Searching for /TODO/...") }
+    it { is_expected.to include("README.md:42") }
+    it { is_expected.to include("spec/grepfruit_spec.rb:6") }
+    it { is_expected.to include("TODO: bar") }
+    it { is_expected.to include("19 files checked") }
+    it { is_expected.to include("21 matches found") }
+    it { is_expected.to include("subject { `./exe/grepfruit -r 'TODO' -e 'vendor'` }") }
+    it { is_expected.not_to include("tmp/foo.txt:") }
+    it { is_expected.not_to include(".github") }
+    it { is_expected.not_to include("vendor/") }
+  end
+
+  context "when more complex regex is specified" do
+    subject { `./exe/grepfruit -r 'opts|spec' -e vendor` }
+
+    it { is_expected.to include("Searching for /opts|spec/...") }
+    it { is_expected.to include("grepfruit.gemspec:5") }
+    it { is_expected.to include("OptionParser.new do |opts|") }
+    it { is_expected.to include("74 matches found") }
   end
 
   context "when only one match is found" do
-    subject { `./exe/grepfruit ./exe` }
+    subject { `./exe/grepfruit -r 'TODO' ./tmp` }
 
     it { is_expected.to include("1 file checked") }
     it { is_expected.to include("1 match found") }
   end
 
   context "when no matches are found" do
-    subject { `./exe/grepfruit -e grepfruit_spec.rb -r FOOBAR` }
+    subject { `./exe/grepfruit -e 'grepfruit_spec.rb,vendor,Gemfile.lock' -r FOOBAR` }
 
+    it { is_expected.to include("19 files checked") }
     it { is_expected.to include("no matches found") }
   end
 
-  context "when regex is specified" do
-    subject { `./exe/grepfruit -r 'opts|spec' -e vendor` }
+  context "when no matches are found and 1 file is checked" do
+    subject { `./exe/grepfruit -e grepfruit_spec.rb -r FOOBAR ./tmp` }
 
-    it { is_expected.to include("Searching for /opts|spec/...") }
-    it { is_expected.to include("grepfruit.gemspec:5") }
-    it { is_expected.to include("OptionParser.new do |opts|") }
-    it { is_expected.to include("62 matches found") }
+    it { is_expected.to include("1 file checked") }
+    it { is_expected.to include("no matches found") }
   end
 
   context "when multiple directories and files are excluded" do
-    subject { `./exe/grepfruit -e 'exe,spec,README.md,vendor,tmp'` }
+    subject { `./exe/grepfruit -e 'spec,README.md,vendor,tmp' -r TODO` }
 
-    it { is_expected.not_to include("exe/grepfruit") }
+    it { is_expected.not_to include("spec/") }
     it { is_expected.not_to include("README.md") }
     it { is_expected.to include("no matches found") }
   end
 
   context "when nothing is excluded" do
-    subject { `./exe/grepfruit -e ''` }
+    subject { `./exe/grepfruit -r TODO` }
 
     it { is_expected.to include("tmp/foo.txt:1") }
     it { is_expected.to include("TODO: bar") }
   end
 
   context "when a relative path is specified" do
-    subject { `./exe/grepfruit -e 'exe/grepfruit,vendor'` }
+    subject { `./exe/grepfruit -r 'TODO' -e 'spec/grepfruit_spec.rb,vendor'` }
 
-    it { is_expected.not_to include("exe/grepfruit") }
-    it { is_expected.to include("10 matches found") }
+    it { is_expected.not_to include("spec/grepfruit_spec.rb:") }
+    it { is_expected.to include("7 matches found") }
   end
 
   context "when only a part of the file name is excluded" do
-    subject { `./exe/grepfruit -e 'fruit,vendor'` }
+    subject { `./exe/grepfruit -e 'spec.rb,vendor' -r TODO` }
 
-    it { is_expected.to include("exe/grepfruit") }
+    it { is_expected.to include("spec.rb") }
   end
 
   context "when hidden files search is enabled" do
