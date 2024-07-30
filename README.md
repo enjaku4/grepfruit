@@ -47,13 +47,13 @@ bundle exec grepfruit -r 'TODO' -e 'log,tmp,vendor,node_modules,assets'
 bundle exec grepfruit --regex 'TODO' --exclude 'log,tmp,vendor,node_modules,assets'
 ```
 
-Search for a more complex pattern in another directory, while specifying both files and directories to exclude:
+Search for the pattern `/FIXME|TODO/` in `dev/grepfruit` directory, excluding `bin`, `tmp/log`, and `Gemfile.lock` files and directories:
 
 ```shell
 bundle exec grepfruit -r 'FIXME|TODO' -e 'bin,tmp/log,Gemfile.lock' dev/grepfruit
 ```
 
-Search including hidden files and directories:
+Search for the pattern `/FIXME|TODO/` in the current directory, including hidden files and directories:
 
 ```shell
 bundle exec grepfruit -r 'FIXME|TODO' --search-hidden
