@@ -34,7 +34,7 @@ module Grepfruit
     puts "\n\n"
 
     if lines.empty?
-      puts "#{files} files checked, \e[32mno matches found\e[0m"
+      puts "#{files} file#{'s' if files > 1} checked, \e[32mno matches found\e[0m"
       exit(0)
     else
       puts "Matches:\n\n"
