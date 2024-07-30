@@ -6,24 +6,23 @@ module Grepfruit
   def self.run(path:, regex:, exclude:, search_hidden:)
     lines = []
     files = 0
-    dir = path
 
     puts "Searching for #{regex.inspect}...\n\n"
 
-    Find.find(dir) do |pth|
-      Find.prune if exclude.any? { |e| pth.split("/").last(e.length) == e } || !search_hidden && File.basename(pth).start_with?(".")
+    Find.find(path) do |filepath|
+      Find.prune if exclude.any? { |e| filepath.split("/").last(e.length) == e } || !search_hidden && File.basename(filepath).start_with?(".")
 
-      next if File.directory?(pth) || File.symlink?(pth)
+      next if File.directory?(filepath) || File.symlink?(filepath)
 
       files += 1
 
       match = false
 
-      File.foreach(pth).with_index do |line, line_num|
+      File.foreach(filepath).with_index do |line, line_num|
         next unless line.valid_encoding?
 
         if line.match?(regex)
-          lines << "\e[36m#{Pathname.new(pth).relative_path_from(Pathname.new(dir))}:#{line_num + 1}\e[0m: #{line.strip}"
+          lines << "\e[36m#{Pathname.new(filepath).relative_path_from(Pathname.new(path))}:#{line_num + 1}\e[0m: #{line.strip}"
           match = true
         end
       end
