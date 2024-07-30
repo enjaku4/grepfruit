@@ -7,8 +7,8 @@ require "grepfruit"
 
 options = {
   path: Dir.pwd,
-  regex: /TODO/,
-  exclude: [["log"], ["tmp"], ["vendor"], ["node_modules"], ["assets"]],
+  regex: nil,
+  exclude: [],
   search_hidden: false
 }
 
@@ -27,6 +27,11 @@ OptionParser.new do |opts|
     options[:search_hidden] = search_hidden
   end
 end.parse!
+
+if options[:regex].nil?
+  puts "Error: You must specify a regex pattern using the -r or --regex option."
+  exit 1
+end
 
 options[:path] = ARGV[0] if ARGV[0]
 

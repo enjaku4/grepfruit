@@ -13,7 +13,7 @@ module Grepfruit
     Find.find(dir) do |pth|
       Find.prune if exclude.any? { |e| pth.split("/").last(e.length) == e } || !search_hidden && File.basename(pth).start_with?(".")
 
-      next if File.directory?(pth)
+      next if File.directory?(pth) || File.symlink?(pth)
 
       files += 1
 
@@ -34,7 +34,7 @@ module Grepfruit
     puts "\n\n"
 
     if lines.empty?
-      puts "#{files} files checked, \e[32mno matches found\e[0m"
+      puts "#{files} file#{'s' if files > 1} checked, \e[32mno matches found\e[0m"
       exit(0)
     else
       puts "Matches:\n\n"
