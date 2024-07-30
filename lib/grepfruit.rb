@@ -13,7 +13,7 @@ module Grepfruit
     Find.find(dir) do |pth|
       Find.prune if exclude.any? { |e| pth.split("/").last(e.length) == e } || !search_hidden && File.basename(pth).start_with?(".")
 
-      next if File.directory?(pth)
+      next if File.directory?(pth) || File.symlink?(pth)
 
       files += 1
 
