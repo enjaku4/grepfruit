@@ -1,6 +1,7 @@
 ## v1.1.0
 
 - Added `--truncate` option to truncate the output of the search results
+- Added the ability to exclude lines from the search results
 
 ## v1.0.0
 

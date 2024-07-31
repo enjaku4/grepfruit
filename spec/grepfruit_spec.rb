@@ -24,7 +24,7 @@ RSpec.describe Grepfruit do
     it { is_expected.to include("spec/grepfruit_spec.rb:6") }
     it { is_expected.to include("TODO: bar") }
     it { is_expected.to include("17 files checked") }
-    it { is_expected.to include("25 matches found") }
+    it { is_expected.to include("28 matches found") }
     it { is_expected.to include("subject { `./exe/grepfruit -r 'TODO' -e 'vendor'` }") }
     it { is_expected.not_to include("tmp/foo.txt:") }
     it { is_expected.not_to include(".github") }
@@ -39,7 +39,7 @@ RSpec.describe Grepfruit do
     it { is_expected.to include("spec/grepfruit_spec.rb:6") }
     it { is_expected.to include("TODO: bar") }
     it { is_expected.to include("17 files checked") }
-    it { is_expected.to include("25 matches found") }
+    it { is_expected.to include("28 matches found") }
     it { is_expected.to include("subject { `./exe/grepfruit -r 'TODO' -e 'vendor'` }") }
     it { is_expected.not_to include("tmp/foo.txt:") }
     it { is_expected.not_to include(".github") }
@@ -52,7 +52,7 @@ RSpec.describe Grepfruit do
     it { is_expected.to include("Searching for /opts|spec/ in #{Dir.pwd.inspect}...") }
     it { is_expected.to include("grepfruit.gemspec:5") }
     it { is_expected.to include("OptionParser.new do |opts|") }
-    it { is_expected.to include("76 matches found") }
+    it { is_expected.to include("78 matches found") }
   end
 
   context "when only one match is found" do
@@ -91,17 +91,30 @@ RSpec.describe Grepfruit do
     it { is_expected.to include("TODO: bar") }
   end
 
-  context "when a relative path is specified" do
+  context "when a relative path is excluded" do
     subject { `./exe/grepfruit -r 'TODO' -e 'spec/grepfruit_spec.rb,vendor'` }
 
     it { is_expected.not_to include("spec/grepfruit_spec.rb:") }
-    it { is_expected.to include("10 matches found") }
+    it { is_expected.to include("12 matches found") }
+  end
+
+  context "when a specific line is excluded" do
+    subject { `./exe/grepfruit -r 'TODO' -e 'spec/grepfruit_spec.rb:102'` }
+
+    it { is_expected.not_to include("spec/grepfruit_spec.rb:102") }
   end
 
   context "when only a part of the file name is excluded" do
     subject { `./exe/grepfruit -e 'spec.rb,vendor' -r TODO` }
 
     it { is_expected.to include("spec.rb") }
+  end
+
+  context "when truncation is enabled" do
+    subject { `./exe/grepfruit -r 'TODO' -t 5` }
+
+    it { is_expected.to include("Grepf...") }
+    it { is_expected.to include("subje...") }
   end
 
   context "when hidden files search is enabled" do
@@ -116,12 +129,5 @@ RSpec.describe Grepfruit do
 
     it { is_expected.not_to include("dependabot.yml:") }
     it { is_expected.to include("package-ecosystem") }
-  end
-
-  context "when truncation is enabled" do
-    subject { `./exe/grepfruit -r 'TODO' -t 5` }
-
-    it { is_expected.to include("Grepf...") }
-    it { is_expected.to include("subje...") }
   end
 end
