@@ -3,26 +3,28 @@ require "pathname"
 require "find"
 
 module Grepfruit
-  def self.run(path:, regex:, exclude:, search_hidden:)
+  def self.run(dir:, regex:, exclude:, truncate:, search_hidden:)
     lines = []
     files = 0
 
-    puts "Searching for #{regex.inspect}...\n\n"
+    puts "Searching for #{regex.inspect} in #{dir.inspect}...\n\n"
 
-    Find.find(path) do |filepath|
-      Find.prune if exclude.any? { |e| filepath.split("/").last(e.length) == e } || !search_hidden && File.basename(filepath).start_with?(".")
+    Find.find(dir) do |path|
+      Find.prune if exclude.any? { |e| path.split("/").last(e.length) == e } || !search_hidden && File.basename(path).start_with?(".")
 
-      next if File.directory?(filepath) || File.symlink?(filepath)
+      next if File.directory?(path) || File.symlink?(path)
 
       files += 1
 
       match = false
 
-      File.foreach(filepath).with_index do |line, line_num|
+      File.foreach(path).with_index do |line, line_num|
         next unless line.valid_encoding?
 
         if line.match?(regex)
-          lines << "\e[36m#{Pathname.new(filepath).relative_path_from(Pathname.new(path))}:#{line_num + 1}\e[0m: #{line.strip}"
+          processed_line = line.strip
+          processed_line = "#{processed_line[0..truncate - 1]}..." if truncate && processed_line.length > truncate
+          lines << "\e[36m#{Pathname.new(path).relative_path_from(Pathname.new(dir))}:#{line_num + 1}\e[0m: #{processed_line}"
           match = true
         end
       end

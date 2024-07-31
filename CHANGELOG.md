@@ -1,3 +1,7 @@
+## v1.1.0
+
+- Added `--truncate` option to truncate the output of the search results
+
 ## v1.0.0
 
 - Removed default values for `--exclude` and `--regex` options

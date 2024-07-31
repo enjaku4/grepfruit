@@ -19,12 +19,12 @@ RSpec.describe Grepfruit do
   context "when regex is specified" do
     subject { `./exe/grepfruit -r 'TODO' -e 'tmp,vendor,Gemfile.lock'` }
 
-    it { is_expected.to include("Searching for /TODO/...") }
-    it { is_expected.to include("README.md:42") }
+    it { is_expected.to include("Searching for /TODO/ in #{Dir.pwd.inspect}...") }
+    it { is_expected.to include("README.md:43") }
     it { is_expected.to include("spec/grepfruit_spec.rb:6") }
     it { is_expected.to include("TODO: bar") }
     it { is_expected.to include("17 files checked") }
-    it { is_expected.to include("23 matches found") }
+    it { is_expected.to include("25 matches found") }
     it { is_expected.to include("subject { `./exe/grepfruit -r 'TODO' -e 'vendor'` }") }
     it { is_expected.not_to include("tmp/foo.txt:") }
     it { is_expected.not_to include(".github") }
@@ -34,12 +34,12 @@ RSpec.describe Grepfruit do
   context "when full option names are specified" do
     subject { `./exe/grepfruit --regex 'TODO' --exclude 'tmp,vendor,Gemfile.lock'` }
 
-    it { is_expected.to include("Searching for /TODO/...") }
-    it { is_expected.to include("README.md:42") }
+    it { is_expected.to include("Searching for /TODO/ in #{Dir.pwd.inspect}...") }
+    it { is_expected.to include("README.md:43") }
     it { is_expected.to include("spec/grepfruit_spec.rb:6") }
     it { is_expected.to include("TODO: bar") }
     it { is_expected.to include("17 files checked") }
-    it { is_expected.to include("23 matches found") }
+    it { is_expected.to include("25 matches found") }
     it { is_expected.to include("subject { `./exe/grepfruit -r 'TODO' -e 'vendor'` }") }
     it { is_expected.not_to include("tmp/foo.txt:") }
     it { is_expected.not_to include(".github") }
@@ -49,10 +49,10 @@ RSpec.describe Grepfruit do
   context "when more complex regex is specified" do
     subject { `./exe/grepfruit -r 'opts|spec' -e vendor` }
 
-    it { is_expected.to include("Searching for /opts|spec/...") }
+    it { is_expected.to include("Searching for /opts|spec/ in #{Dir.pwd.inspect}...") }
     it { is_expected.to include("grepfruit.gemspec:5") }
     it { is_expected.to include("OptionParser.new do |opts|") }
-    it { is_expected.to include("73 matches found") }
+    it { is_expected.to include("76 matches found") }
   end
 
   context "when only one match is found" do
@@ -95,7 +95,7 @@ RSpec.describe Grepfruit do
     subject { `./exe/grepfruit -r 'TODO' -e 'spec/grepfruit_spec.rb,vendor'` }
 
     it { is_expected.not_to include("spec/grepfruit_spec.rb:") }
-    it { is_expected.to include("9 matches found") }
+    it { is_expected.to include("10 matches found") }
   end
 
   context "when only a part of the file name is excluded" do
@@ -116,5 +116,12 @@ RSpec.describe Grepfruit do
 
     it { is_expected.not_to include("dependabot.yml:") }
     it { is_expected.to include("package-ecosystem") }
+  end
+
+  context "when truncation is enabled" do
+    subject { `./exe/grepfruit -r 'TODO' -t 5` }
+
+    it { is_expected.to include("Grepf...") }
+    it { is_expected.to include("subje...") }
   end
 end

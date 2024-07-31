@@ -6,9 +6,10 @@ require "optparse"
 require "grepfruit"
 
 options = {
-  path: Dir.pwd,
+  dir: Dir.pwd,
   regex: nil,
   exclude: [],
+  truncate: nil,
   search_hidden: false
 }
 
@@ -23,6 +24,10 @@ OptionParser.new do |opts|
     options[:exclude] = exclude.map { |path| path.split("/") }
   end
 
+  opts.on("-t", "--truncate N", Integer, "Truncate output to N characters") do |truncate|
+    options[:truncate] = truncate
+  end
+
   opts.on("--search-hidden", TrueClass, "Search hidden files and directories") do |search_hidden|
     options[:search_hidden] = search_hidden
   end
@@ -33,6 +38,6 @@ if options[:regex].nil?
   exit 1
 end
 
-options[:path] = ARGV[0] if ARGV[0]
+options[:dir] = ARGV[0] if ARGV[0]
 
 Grepfruit.run(**options)
