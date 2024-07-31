@@ -33,8 +33,9 @@ bundle exec grepfruit [options] PATH
 
 ### Options
 
-- `-r, --regex REGEX`: Regex pattern to search for (required). 
-- `-e, --exclude x,y,z`: Comma-separated list of files and directories to exclude from the search.
+- `-r, --regex REGEX`: Regex pattern to search for (required).
+- `-e, --exclude x,y,z`: Comma-separated list of files, directories, or lines to exclude from the search.
+- `-t, --truncate N`: Truncate the output of the search results to N characters.
 - `--search-hidden`: Search hidden files and directories.
 
 ### Examples
@@ -43,14 +44,24 @@ Search for the pattern `/TODO/` in the current directory, excluding `log`, `tmp`
 
 ```shell
 bundle exec grepfruit -r 'TODO' -e 'log,tmp,vendor,node_modules,assets'
-# or
-bundle exec grepfruit --regex 'TODO' --exclude 'log,tmp,vendor,node_modules,assets'
 ```
 
 Search for the pattern `/FIXME|TODO/` in `dev/grepfruit` directory, excluding `bin`, `tmp/log`, and `Gemfile.lock` files and directories:
 
 ```shell
 bundle exec grepfruit -r 'FIXME|TODO' -e 'bin,tmp/log,Gemfile.lock' dev/grepfruit
+```
+
+Search for the pattern `/FIXME|TODO/` in the current directory, excluding line 18 of `README.md`:
+
+```shell
+bundle exec grepfruit -r 'FIXME|TODO' -e 'README.md:18'
+```
+
+Search for the pattern `/FIXME|TODO/` in the current directory, truncating the output of the search results to 50 characters:
+
+```shell
+bundle exec grepfruit -r 'FIXME|TODO' -t 50
 ```
 
 Search for the pattern `/FIXME|TODO/` in the current directory, including hidden files and directories:

@@ -20,7 +20,8 @@ jobs:
           ruby-version: 3.0
           bundler-cache: true
       - name: Run Todo Search
-        run: ./exe/grepfruit -r 'TODO' -e 'vendor,tmp,README.md,grepfruit_spec.rb'
+        run: ./exe/grepfruit -r 'TODO' -e 'vendor,tmp,.git,main.yml:23,README.md:10,README.md:43,README.md:46,README.md:49,README.md:52,README.md:55,README.md:58,README.md:61,README.md:64,README.md:67,README.md:70,spec/grepfruit_spec.rb:6,spec/grepfruit_spec.rb:20,spec/grepfruit_spec.rb:22,spec/grepfruit_spec.rb:25,spec/grepfruit_spec.rb:28,spec/grepfruit_spec.rb:35,spec/grepfruit_spec.rb:37,spec/grepfruit_spec.rb:40,spec/grepfruit_spec.rb:43,spec/grepfruit_spec.rb:59,spec/grepfruit_spec.rb:80,spec/grepfruit_spec.rb:88,spec/grepfruit_spec.rb:91,spec/grepfruit_spec.rb:95,spec/grepfruit_spec.rb:102,spec/grepfruit_spec.rb:108,spec/grepfruit_spec.rb:114' --search-hidden
+
 
   linting:
     runs-on: ubuntu-latest
