@@ -1,3 +1,8 @@
+## v1.1.1
+
+- Added test dataset to make testing and development easier
+- Updated gemspec file to include missing metadata
+
 ## v1.1.0
 
 - Added `--truncate` option to truncate the output of the search results
