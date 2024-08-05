@@ -1,0 +1,20 @@
+The quick brown fox jumps over the lazy dog.
+She sells seashells by the seashore.
+TODO: Fix the alignment issue in the header.
+An apple a day keeps the doctor away.
+He went to the store to buy some milk.
+The rain in Spain stays mainly in the plain.
+TODO: Update the user permissions module.
+The cat sat on the mat.
+He reads books every night before bed.
+The early bird catches the worm.
+She loves to paint landscapes and portraits.
+Birds of a feather flock together.
+Jack and Jill went up the hill.
+TODO: Review the new design specifications.
+All that glitters is not gold.
+A picture is worth a thousand words.
+Actions speak louder than words.
+Better late than never.
+A watched pot never boils.
+Curiosity killed the cat.

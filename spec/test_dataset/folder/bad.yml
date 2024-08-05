@@ -1,0 +1,35 @@
+server:
+  host: localhost
+  port: 8080
+
+database:
+  type: mysql
+  host: db.example.com
+  port: 3306
+  username: user
+  password: pass
+  name: mydatabase
+
+logging:
+  level: info
+  file: /var/log/myapp.log
+
+api:
+  version: v1
+  base_url: /api/v1
+
+# TODO: Add configuration for cache settings
+
+features:
+  enable_feature_x: true
+  enable_feature_y: false
+
+security:
+  enable_https: true
+  allowed_ips:
+    - 192.168.1.1
+    - 192.168.1.2
+
+notifications:
+  email: true
+  sms: false
