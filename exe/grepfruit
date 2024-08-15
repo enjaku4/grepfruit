@@ -21,7 +21,7 @@ OptionParser.new do |opts|
   end
 
   opts.on("-e", "--exclude x,y,z", Array, "Comma-separated list of files and directories to exclude") do |exclude|
-    options[:exclude] = exclude.map { |path| path.split("/") }
+    options[:exclude] = exclude
   end
 
   opts.on("-t", "--truncate N", Integer, "Truncate output to N characters") do |truncate|
@@ -40,4 +40,4 @@ end
 
 options[:dir] = ARGV[0] if ARGV[0]
 
-Grepfruit.run(**options)
+Grepfruit::Search.new(**options).run
