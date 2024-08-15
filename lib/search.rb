@@ -3,12 +3,17 @@ require "find"
 
 module Grepfruit
   class Search
+    CYAN = "\e[36m"
+    RED = "\e[31m"
+    GREEN = "\e[32m"
+    RESET = "\e[0m"
+
     attr_reader :dir, :regex, :excluded_paths, :excluded_lines, :truncate, :search_hidden
 
     def initialize(dir:, regex:, exclude:, truncate:, search_hidden:)
       @dir = dir
       @regex = regex
-      @excluded_lines, @excluded_paths = exclude.partition { |e| e.include?(":") }
+      @excluded_lines, @excluded_paths = exclude.map { |e| e.split("/") }.partition { |e| e.last.include?(":") }
       @truncate = truncate
       @search_hidden = search_hidden
     end
@@ -33,23 +38,23 @@ module Grepfruit
           if line.match?(regex)
             next if excluded_line?(path, line_num)
 
-            lines << "\e[36m#{relative_path_with_line_num(path, line_num)}\e[0m: #{processed_line(line)}"
+            lines << "#{CYAN}#{relative_path_with_line_num(path, line_num)}#{RESET}: #{processed_line(line)}"
             match = true
           end
         end
 
-        print match ? "\e[31mF\e[0m" : "\e[32m.\e[0m"
+        print match ? "#{RED}M#{RESET}" : "#{GREEN}.#{RESET}"
       end
 
-      puts "\n\n"
+      puts "\n\n" if files.positive?
 
       if lines.empty?
-        puts "#{files} file#{'s' if files > 1} checked, \e[32mno matches found\e[0m"
+        puts "#{number_of_files(files)} checked, #{GREEN}no matches found#{RESET}"
         exit(0)
       else
         puts "Matches:\n\n"
         puts "#{lines.join("\n")}\n\n"
-        puts "#{files} file#{'s' if files > 1} checked, \e[31m#{lines.size} match#{'es' if lines.size > 1} found\e[0m"
+        puts "#{number_of_files(files)} checked, #{RED}#{number_of_matches(lines.size)} found#{RESET}"
         exit(1)
       end
     end
@@ -65,7 +70,7 @@ module Grepfruit
     end
 
     def excluded?(list, path)
-      list.any?(path)
+      list.any? { |e| path.split("/").last(e.length) == e }
     end
 
     def relative_path(path)
@@ -83,6 +88,14 @@ module Grepfruit
 
     def hidden?(path)
       File.basename(path).start_with?(".")
+    end
+
+    def number_of_files(num)
+      "#{num} file#{'s' if num > 1}"
+    end
+
+    def number_of_matches(num)
+      "#{num} match#{'es' if num > 1}"
     end
   end
 end
