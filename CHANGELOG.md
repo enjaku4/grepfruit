@@ -1,3 +1,8 @@
+## v1.1.2
+
+- Refactored code significantly for improved search efficiency and easier maintenance
+- Enhanced search result output for better readability
+
 ## v1.1.1
 
 - Added test dataset to make testing and development easier
