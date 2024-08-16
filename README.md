@@ -5,7 +5,7 @@
 
 Grepfruit is a Ruby gem for searching files within a directory for a specified regular expression pattern, with options to exclude certain files or directories from the search and colorized output for better readability.
 
-<img width="416" alt="Screenshot 2024-07-28 at 03 52 37" src="https://github.com/user-attachments/assets/95b26b81-dcc1-430b-ac44-641251cb84b6">
+<img width="440" alt="Screenshot 2024-08-16 at 21 17 25" src="https://github.com/user-attachments/assets/3caaa1f4-5636-4ca1-ae45-6fc56f8945e4">
 
 Grepfruit was originally created to be used in CI/CD pipelines to search for `TODO` comments in Ruby on Rails applications and provide more user-friendly output than the standard `grep` command, but it is flexible enough to be used for other similar purposes as well.
 
@@ -23,12 +23,18 @@ And then execute:
 bundle install
 ```
 
+Or install it yourself as:
+
+```shell
+gem install grepfruit
+```
+
 ## Usage
 
 You can use Grepfruit from the command line to search for a regex pattern within files in a specified directory.
 
 ```shell
-bundle exec grepfruit [options] PATH
+grepfruit [options] PATH
 ```
 
 ### Options
@@ -43,31 +49,31 @@ bundle exec grepfruit [options] PATH
 Search for the pattern `/TODO/` in the current directory, excluding `log`, `tmp`, `vendor`, `node_modules`, and `assets` directories:
 
 ```shell
-bundle exec grepfruit -r 'TODO' -e 'log,tmp,vendor,node_modules,assets'
+grepfruit -r 'TODO' -e 'log,tmp,vendor,node_modules,assets'
 ```
 
 Search for the pattern `/FIXME|TODO/` in `dev/grepfruit` directory, excluding `bin`, `tmp/log`, and `Gemfile.lock` files and directories:
 
 ```shell
-bundle exec grepfruit -r 'FIXME|TODO' -e 'bin,tmp/log,Gemfile.lock' dev/grepfruit
+grepfruit -r 'FIXME|TODO' -e 'bin,tmp/log,Gemfile.lock' dev/grepfruit
 ```
 
 Search for the pattern `/FIXME|TODO/` in the current directory, excluding line 18 of `README.md`:
 
 ```shell
-bundle exec grepfruit -r 'FIXME|TODO' -e 'README.md:18'
+grepfruit -r 'FIXME|TODO' -e 'README.md:18'
 ```
 
 Search for the pattern `/FIXME|TODO/` in the current directory, truncating the output of the search results to 50 characters:
 
 ```shell
-bundle exec grepfruit -r 'FIXME|TODO' -t 50
+grepfruit -r 'FIXME|TODO' -t 50
 ```
 
 Search for the pattern `/FIXME|TODO/` in the current directory, including hidden files and directories:
 
 ```shell
-bundle exec grepfruit -r 'FIXME|TODO' --search-hidden
+grepfruit -r 'FIXME|TODO' --search-hidden
 ```
 
 ## Problems?
