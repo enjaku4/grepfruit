@@ -35,9 +35,7 @@ module Grepfruit
         File.foreach(path).with_index do |line, line_num|
           next unless line.valid_encoding?
 
-          if line.match?(regex)
-            next if excluded_line?(path, line_num)
-
+          if line.match?(regex) && !excluded_line?(path, line_num)
             lines << "#{CYAN}#{relative_path_with_line_num(path, line_num)}#{RESET}: #{processed_line(line)}"
             match = true
           end
