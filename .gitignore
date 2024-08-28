@@ -13,3 +13,4 @@ Gemfile.lock
 .byebug_history
 .idea
 .vscode
+.solargraph.yml
