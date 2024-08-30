@@ -37,6 +37,8 @@ You can use Grepfruit from the command line to search for a regex pattern within
 grepfruit [options] PATH
 ```
 
+If no matches are found, Grepfruit returns exit status 0; otherwise, it returns exit status 1.
+
 ### Options
 
 - `-r, --regex REGEX`: Regex pattern to search for (required).
