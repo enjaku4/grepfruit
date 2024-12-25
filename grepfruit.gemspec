@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.metadata["rubygems_mfa_required"] = "true"
   spec.summary = "A Ruby gem for searching text patterns in files with colorized output"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.0", "< 3.4"
+  spec.required_ruby_version = ">= 3.1", "< 3.5"
 
   spec.files = [
     "grepfruit.gemspec", "README.md", "CHANGELOG.md", "LICENSE.txt"
