@@ -1,3 +1,8 @@
+## v2.0.0
+
+- Added support for Ruby 3.4
+- Dropped support for Ruby 3.0
+
 ## v1.1.2
 
 - Refactored code significantly for improved search efficiency and easier maintenance
