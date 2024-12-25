@@ -13,7 +13,7 @@ module Grepfruit
     def initialize(dir:, regex:, exclude:, truncate:, search_hidden:)
       @dir = dir
       @regex = regex
-      @excluded_lines, @excluded_paths = exclude.map { |e| e.split("/") }.partition { |e| e.last.include?(":") }
+      @excluded_lines, @excluded_paths = exclude.map { _1.split("/") }.partition { _1.last.include?(":") }
       @truncate = truncate
       @search_hidden = search_hidden
     end
@@ -68,7 +68,7 @@ module Grepfruit
     end
 
     def excluded?(list, path)
-      list.any? { |e| path.split("/").last(e.length) == e }
+      list.any? { path.split("/").last(_1.length) == _1 }
     end
 
     def relative_path(path)
