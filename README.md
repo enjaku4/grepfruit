@@ -5,7 +5,7 @@
 
 Grepfruit is a Ruby gem for searching files within a directory for a specified regular expression pattern, with options to exclude certain files or directories from the search and colorized output for better readability.
 
-<img width="440" alt="Screenshot 2024-08-16 at 21 17 25" src="https://github.com/user-attachments/assets/3caaa1f4-5636-4ca1-ae45-6fc56f8945e4">
+<img width="431" alt="Screenshot 2024-12-26 at 18 01 39" src="https://github.com/user-attachments/assets/e3fdb4f7-c4d9-4c8d-9a5a-228f2be55d52" />
 
 Grepfruit was originally created to be used in CI/CD pipelines to search for `TODO` comments in Ruby on Rails applications and provide more user-friendly output than the standard `grep` command, but it is flexible enough to be used for other similar purposes as well.
 
