@@ -19,7 +19,7 @@ module Grepfruit
     end
 
     def run
-      lines, files = [], 0
+      lines, files, files_with_matches = [], 0, 0
 
       puts "Searching for #{regex.inspect} in #{dir.inspect}...\n\n"
 
@@ -29,7 +29,6 @@ module Grepfruit
         next if File.directory?(path) || File.symlink?(path)
 
         files += 1
-
         match = false
 
         File.foreach(path).with_index do |line, line_num|
@@ -40,6 +39,8 @@ module Grepfruit
             match = true
           end
         end
+
+        files_with_matches += 1 if match
 
         print match ? "#{RED}M#{RESET}" : "#{GREEN}.#{RESET}"
       end
@@ -52,7 +53,7 @@ module Grepfruit
       else
         puts "Matches:\n\n"
         puts "#{lines.join("\n")}\n\n"
-        puts "#{number_of_files(files)} checked, #{RED}#{number_of_matches(lines.size)} found#{RESET}"
+        puts "#{number_of_files(files)} checked, #{RED}#{number_of_matches(lines.size)} found in #{number_of_files(files_with_matches)}#{RESET}"
         exit(1)
       end
     end

@@ -23,6 +23,7 @@ RSpec.describe Grepfruit do
     it { is_expected.to include("TODO: Refactor this function to improve readability") }
     it { is_expected.to include("4 files checked") }
     it { is_expected.to include("16 matches found") }
+    it { is_expected.to include("in 4 files") }
     it { is_expected.not_to include(".hidden") }
   end
 
@@ -36,6 +37,7 @@ RSpec.describe Grepfruit do
     it { is_expected.to include("TODO: Refactor this function to improve readability") }
     it { is_expected.to include("4 files checked") }
     it { is_expected.to include("16 matches found") }
+    it { is_expected.to include("in 4 files") }
     it { is_expected.not_to include(".hidden") }
   end
 
@@ -48,6 +50,7 @@ RSpec.describe Grepfruit do
     it { is_expected.to include("bar.txt:7") }
     it { is_expected.to include("Update the user permissions module.") }
     it { is_expected.to include("17 matches found") }
+    it { is_expected.to include("in 4 files") }
   end
 
   context "when only one match is found and only one file is checked" do
@@ -55,6 +58,7 @@ RSpec.describe Grepfruit do
 
     it { is_expected.to include("1 file checked") }
     it { is_expected.to include("1 match found") }
+    it { is_expected.to include("in 1 file") }
   end
 
   context "when no matches are found" do
