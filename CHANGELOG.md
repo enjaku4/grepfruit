@@ -1,3 +1,7 @@
+## v2.0.1
+
+- Enhanced output to include the number of files with matches
+
 ## v2.0.0
 
 - Added support for Ruby 3.4
