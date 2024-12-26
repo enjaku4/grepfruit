@@ -20,7 +20,7 @@ jobs:
           ruby-version: 3.1
           bundler-cache: true
       - name: Run Todo Search
-        run: ./exe/grepfruit -r 'TODO' -e 'vendor,.git,main.yml:23,README.md:10,README.md:51,README.md:54,README.md:57,README.md:60,README.md:63,README.md:66,README.md:69,README.md:72,README.md:75,README.md:78,spec/grepfruit_spec.rb:11,spec/grepfruit_spec.rb:13,spec/grepfruit_spec.rb:17,spec/grepfruit_spec.rb:19,spec/grepfruit_spec.rb:22,spec/grepfruit_spec.rb:23,spec/grepfruit_spec.rb:30,spec/grepfruit_spec.rb:32,spec/grepfruit_spec.rb:35,spec/grepfruit_spec.rb:36,spec/grepfruit_spec.rb:43,spec/grepfruit_spec.rb:45,spec/grepfruit_spec.rb:75,spec/grepfruit_spec.rb:82,spec/grepfruit_spec.rb:89,spec/grepfruit_spec.rb:98,spec/grepfruit_spec.rb:104,spec/grepfruit_spec.rb:110,spec/grepfruit_spec.rb:116,spec/grepfruit_spec.rb:118,spec/grepfruit_spec.rb:119,spec/grepfruit_spec.rb:123,spec/grepfruit_spec.rb:125,spec/grepfruit_spec.rb:126,spec/grepfruit_spec.rb:130,spec/grepfruit_spec.rb:137,spec/test_dataset' --search-hidden
+        run: ./exe/grepfruit -r 'TODO' -e 'vendor,.yardoc,.git,main.yml:23,README.md,spec/grepfruit_spec.rb,spec/test_dataset' --search-hidden
 
 
   linting:

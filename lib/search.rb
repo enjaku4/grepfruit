@@ -3,11 +3,6 @@ require "find"
 
 module Grepfruit
   class Search
-    CYAN = "\e[36m"
-    RED = "\e[31m"
-    GREEN = "\e[32m"
-    RESET = "\e[0m"
-
     attr_reader :dir, :regex, :excluded_paths, :excluded_lines, :truncate, :search_hidden
 
     def initialize(dir:, regex:, exclude:, truncate:, search_hidden:)
@@ -19,48 +14,65 @@ module Grepfruit
     end
 
     def run
-      lines, files = [], 0
+      lines, files, files_with_matches = [], 0, 0
 
       puts "Searching for #{regex.inspect} in #{dir.inspect}...\n\n"
 
       Find.find(dir) do |path|
-        Find.prune if excluded_path?(path) || !search_hidden && hidden?(path)
+        Find.prune if excluded_path?(path)
 
-        next if File.directory?(path) || File.symlink?(path)
+        next if not_searchable?(path)
 
         files += 1
+        match = process_file(path, lines)
 
-        match = false
-
-        File.foreach(path).with_index do |line, line_num|
-          next unless line.valid_encoding?
-
-          if line.match?(regex) && !excluded_line?(path, line_num)
-            lines << "#{CYAN}#{relative_path_with_line_num(path, line_num)}#{RESET}: #{processed_line(line)}"
-            match = true
-          end
+        if match
+          files_with_matches += 1
+          print "#{COLORS[:red]}M#{COLORS[:reset]}"
+        else
+          print "#{COLORS[:green]}.#{COLORS[:reset]}"
         end
-
-        print match ? "#{RED}M#{RESET}" : "#{GREEN}.#{RESET}"
       end
 
+      display_results(lines, files, files_with_matches)
+    end
+
+    COLORS = { cyan: "\e[36m", red: "\e[31m", green: "\e[32m", reset: "\e[0m" }
+    private_constant :COLORS
+
+    private
+
+    def not_searchable?(path)
+      File.directory?(path) || File.symlink?(path)
+    end
+
+    def process_file(path, lines)
+      lines_size = lines.size
+
+      File.foreach(path).with_index do |line, line_num|
+        next if !line.valid_encoding? || !line.match?(regex) || excluded_line?(path, line_num)
+
+        lines << "#{COLORS[:cyan]}#{relative_path_with_line_num(path, line_num)}#{COLORS[:reset]}: #{processed_line(line)}"
+      end
+
+      lines.size > lines_size
+    end
+
+    def display_results(lines, files, files_with_matches)
       puts "\n\n" if files.positive?
 
       if lines.empty?
-        puts "#{number_of_files(files)} checked, #{GREEN}no matches found#{RESET}"
+        puts "#{number_of_files(files)} checked, #{COLORS[:green]}no matches found#{COLORS[:reset]}"
         exit(0)
       else
-        puts "Matches:\n\n"
-        puts "#{lines.join("\n")}\n\n"
-        puts "#{number_of_files(files)} checked, #{RED}#{number_of_matches(lines.size)} found#{RESET}"
+        puts "Matches:\n\n#{lines.join("\n")}\n\n"
+        puts "#{number_of_files(files)} checked, #{COLORS[:red]}#{number_of_matches(lines.size)} found in #{number_of_files(files_with_matches)}#{COLORS[:reset]}"
         exit(1)
       end
     end
 
-    private
-
     def excluded_path?(path)
-      excluded?(excluded_paths, relative_path(path))
+      excluded?(excluded_paths, relative_path(path)) || !search_hidden && hidden?(path)
     end
 
     def excluded_line?(path, line_num)
