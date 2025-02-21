@@ -1,3 +1,7 @@
+## v2.0.2
+
+- Replaced `git ls-files` with `Dir.glob` in gemspec for improved portability and compatibility
+
 ## v2.0.1
 
 - Enhanced output to include the number of files with matches
