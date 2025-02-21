@@ -14,7 +14,7 @@ Grepfruit was originally created to be used in CI/CD pipelines to search for `TO
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'grepfruit'
+gem "grepfruit"
 ```
 
 And then execute:

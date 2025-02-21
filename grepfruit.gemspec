@@ -15,7 +15,7 @@ Gem::Specification.new do |spec|
 
   spec.files = [
     "grepfruit.gemspec", "README.md", "CHANGELOG.md", "LICENSE.txt"
-  ] + `git ls-files | grep -E '^(lib|exe)'`.split("\n")
+  ] + Dir.glob("{exe,lib}/**/*")
 
   spec.bindir = "exe"
   spec.executables = ["grepfruit"]
