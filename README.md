@@ -1,7 +1,7 @@
 # Grepfruit
 
 [![Gem Version](https://badge.fury.io/rb/grepfruit.svg)](http://badge.fury.io/rb/grepfruit)
-[![Github Actions badge](https://github.com/enjaku4/grepfruit/actions/workflows/main.yml/badge.svg)](https://github.com/enjaku4/grepfruit/actions/workflows/main.yml)
+[![Github Actions badge](https://github.com/enjaku4/grepfruit/actions/workflows/ci.yml/badge.svg)](https://github.com/enjaku4/grepfruit/actions/workflows/ci.yml)
 
 Grepfruit is a Ruby gem for searching files within a directory for a specified regular expression pattern, with options to exclude certain files or directories from the search and colorized output for better readability.
 
