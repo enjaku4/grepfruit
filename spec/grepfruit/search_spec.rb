@@ -1,6 +1,6 @@
 require "fileutils"
 
-RSpec.describe Grepfruit do
+RSpec.describe Grepfruit::Search do
   context "when no parameters are specified" do
     subject { `./exe/grepfruit` }
 

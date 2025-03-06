@@ -1,5 +1,5 @@
 require_relative "grepfruit/version"
-require_relative "search"
+require_relative "grepfruit/search"
 
 module Grepfruit
   class Error < StandardError; end
