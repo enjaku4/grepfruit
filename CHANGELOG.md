@@ -1,3 +1,7 @@
+## v2.0.3
+
+- Updated gemspec metadata to include the correct homepage URL
+
 ## v2.0.2
 
 - Replaced `git ls-files` with `Dir.glob` in gemspec for improved portability and compatibility

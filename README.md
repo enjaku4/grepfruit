@@ -1,7 +1,7 @@
 # Grepfruit
 
 [![Gem Version](https://badge.fury.io/rb/grepfruit.svg)](http://badge.fury.io/rb/grepfruit)
-[![Github Actions badge](https://github.com/enjaku4/grepfruit/actions/workflows/ci.yml/badge.svg)](https://github.com/enjaku4/grepfruit/actions/workflows/ci.yml)
+[![Github Actions badge](https://github.com/brownboxdev/grepfruit/actions/workflows/ci.yml/badge.svg)](https://github.com/brownboxdev/grepfruit/actions/workflows/ci.yml)
 
 Grepfruit is a Ruby gem for searching files within a directory for a specified regular expression pattern, with options to exclude certain files or directories from the search and colorized output for better readability.
 
@@ -91,12 +91,12 @@ Encountered a bug?
 
 ## Contributing
 
-Before creating an issue or a pull request, please read the [contributing guidelines](https://github.com/enjaku4/grepfruit/blob/master/CONTRIBUTING.md).
+Before creating an issue or a pull request, please read the [contributing guidelines](https://github.com/brownboxdev/grepfruit/blob/master/CONTRIBUTING.md).
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](https://github.com/enjaku4/grepfruit/blob/master/LICENSE.txt).
+The gem is available as open source under the terms of the [MIT License](https://github.com/brownboxdev/grepfruit/blob/master/LICENSE.txt).
 
 ## Code of Conduct
 
-Everyone interacting in the Grepfruit project is expected to follow the [code of conduct](https://github.com/enjaku4/grepfruit/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the Grepfruit project is expected to follow the [code of conduct](https://github.com/brownboxdev/grepfruit/blob/master/CODE_OF_CONDUCT.md).
