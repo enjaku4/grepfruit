@@ -1,97 +1,151 @@
-# Grepfruit
+# Grepfruit: File Pattern Search Tool for Ruby
 
 [![Gem Version](https://badge.fury.io/rb/grepfruit.svg)](http://badge.fury.io/rb/grepfruit)
 [![Github Actions badge](https://github.com/brownboxdev/grepfruit/actions/workflows/ci.yml/badge.svg)](https://github.com/brownboxdev/grepfruit/actions/workflows/ci.yml)
 
-Grepfruit is a Ruby gem for searching files within a directory for a specified regular expression pattern, with options to exclude certain files or directories from the search and colorized output for better readability.
+Grepfruit is a Ruby gem for searching files within a directory for specified regular expression patterns, with intelligent exclusion options and colorized output for enhanced readability. Originally designed for CI/CD pipelines to search for `TODO` comments in Ruby on Rails applications, Grepfruit provides more user-friendly output than the standard `grep` command while maintaining the flexibility for diverse search scenarios.
 
-<img width="431" alt="Screenshot 2024-12-26 at 18 01 39" src="https://github.com/user-attachments/assets/e3fdb4f7-c4d9-4c8d-9a5a-228f2be55d52" />
+**Key Features:**
 
-Grepfruit was originally created to be used in CI/CD pipelines to search for `TODO` comments in Ruby on Rails applications and provide more user-friendly output than the standard `grep` command, but it is flexible enough to be used for other similar purposes as well.
+- Regular expression search within files and directories
+- Intelligent file and directory exclusion capabilities
+- Colorized output for improved readability
+- Hidden file and directory search support
+- Configurable output truncation
+- CI/CD pipeline friendly with meaningful exit codes
+- Line-specific exclusion for precise control
+
+## Table of Contents
+
+**Gem Usage:**
+  - [Installation](#installation)
+  - [Basic Usage](#basic-usage)
+  - [Command Line Options](#command-line-options)
+  - [Usage Examples](#usage-examples)
+  - [Exit Status](#exit-status)
+
+**Community Resources:**
+  - [Contributing](#contributing)
+  - [License](#license)
+  - [Code of Conduct](#code-of-conduct)
 
 ## Installation
 
-Add this line to your application's Gemfile:
+Add Grepfruit to your Gemfile:
 
-```ruby
+```rb
 gem "grepfruit"
 ```
 
-And then execute:
+Install the gem:
 
-```shell
+```bash
 bundle install
 ```
 
-Or install it yourself as:
+Or install it directly:
 
-```shell
+```bash
 gem install grepfruit
 ```
 
-## Usage
+## Basic Usage
 
-You can use Grepfruit from the command line to search for a regex pattern within files in a specified directory.
+Search for regex patterns within files in a specified directory:
 
-```shell
+```bash
 grepfruit [options] PATH
 ```
 
-If no matches are found, Grepfruit returns exit status 0; otherwise, it returns exit status 1.
+If no PATH is specified, Grepfruit searches the current directory.
 
-### Options
+## Command Line Options
 
-- `-r, --regex REGEX`: Regex pattern to search for (required).
-- `-e, --exclude x,y,z`: Comma-separated list of files, directories, or lines to exclude from the search.
-- `-t, --truncate N`: Truncate the output of the search results to N characters.
-- `--search-hidden`: Search hidden files and directories.
+| Option | Description |
+|--------|-------------|
+| `-r, --regex REGEX` | Regex pattern to search for (required) |
+| `-e, --exclude x,y,z` | Comma-separated list of files, directories, or lines to exclude |
+| `-t, --truncate N` | Truncate search result output to N characters |
+| `--search-hidden` | Include hidden files and directories in search |
 
-### Examples
+## Usage Examples
 
-Search for the pattern `/TODO/` in the current directory, excluding `log`, `tmp`, `vendor`, `node_modules`, and `assets` directories:
+### Basic Pattern Search
 
-```shell
+Search for `TODO` comments in the current directory:
+
+```bash
+grepfruit -r 'TODO'
+```
+
+### Excluding Directories
+
+Search for `TODO` patterns while excluding common build and dependency directories:
+
+```bash
 grepfruit -r 'TODO' -e 'log,tmp,vendor,node_modules,assets'
 ```
 
-Search for the pattern `/FIXME|TODO/` in `dev/grepfruit` directory, excluding `bin`, `tmp/log`, and `Gemfile.lock` files and directories:
+### Multiple Pattern Search Excluding Both Directories and Files
 
-```shell
+Search for both `FIXME` and `TODO` comments in a specific directory:
+
+```bash
 grepfruit -r 'FIXME|TODO' -e 'bin,tmp/log,Gemfile.lock' dev/grepfruit
 ```
 
-Search for the pattern `/FIXME|TODO/` in the current directory, excluding line 18 of `README.md`:
+### Line-Specific Exclusion
 
-```shell
+Exclude specific lines from search results:
+
+```bash
 grepfruit -r 'FIXME|TODO' -e 'README.md:18'
 ```
 
-Search for the pattern `/FIXME|TODO/` in the current directory, truncating the output of the search results to 50 characters:
+### Output Truncation
 
-```shell
+Limit output length for cleaner results:
+
+```bash
 grepfruit -r 'FIXME|TODO' -t 50
 ```
 
-Search for the pattern `/FIXME|TODO/` in the current directory, including hidden files and directories:
+### Including Hidden Files
 
-```shell
+Search hidden files and directories:
+
+```bash
 grepfruit -r 'FIXME|TODO' --search-hidden
 ```
 
-## Problems?
+## Exit Status
 
-Facing a problem or want to suggest an enhancement?
+Grepfruit returns meaningful exit codes for CI/CD integration:
 
-- **Open a Discussion**: If you have a question, experience difficulties using the gem, or have a suggestion for improvements, feel free to use the Discussions section.
-
-Encountered a bug?
-
-- **Create an Issue**: If you've identified a bug, please create an issue. Be sure to provide detailed information about the problem, including the steps to reproduce it.
-- **Contribute a Solution**: Found a fix for the issue? Feel free to create a pull request with your changes.
+- **Exit code 0**: No matches found
+- **Exit code 1**: Pattern matches were found
 
 ## Contributing
 
-Before creating an issue or a pull request, please read the [contributing guidelines](https://github.com/brownboxdev/grepfruit/blob/master/CONTRIBUTING.md).
+### Getting Help
+Have a question or need assistance? Open a discussion in our [discussions section](https://github.com/brownboxdev/grepfruit/discussions) for:
+- Usage questions
+- Implementation guidance
+- Feature suggestions
+
+### Reporting Issues
+Found a bug? Please [create an issue](https://github.com/brownboxdev/grepfruit/issues) with:
+- A clear description of the problem
+- Steps to reproduce the issue
+- Your environment details (Ruby version, OS, etc.)
+
+### Contributing Code
+Ready to contribute? You can:
+- Fix bugs by submitting pull requests
+- Improve documentation
+- Add new features (please discuss first in our [discussions section](https://github.com/brownboxdev/grepfruit/discussions))
+
+Before contributing, please read the [contributing guidelines](https://github.com/brownboxdev/grepfruit/blob/master/CONTRIBUTING.md)
 
 ## License
 
