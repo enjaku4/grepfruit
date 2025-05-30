@@ -1,4 +1,5 @@
 ## v2.0.4
+
 - Fixed path resolution bug where searching in relative directories such as `.`, `./`, or `..` did not work correctly
 
 ## v2.0.3
