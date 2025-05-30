@@ -6,7 +6,7 @@ require "optparse"
 require "grepfruit"
 
 options = {
-  dir: Dir.pwd,
+  dir: ".",
   regex: nil,
   exclude: [],
   truncate: nil,
