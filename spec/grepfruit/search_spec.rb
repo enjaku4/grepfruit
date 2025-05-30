@@ -13,10 +13,17 @@ RSpec.describe Grepfruit::Search do
     it { is_expected.to include("Searching for /TODO/ in #{Dir.pwd.inspect}...") }
   end
 
+  context "when curent directory is specified as ." do
+    subject { `./exe/grepfruit -r TODO .` }
+
+    it { is_expected.to include("Searching for /TODO/ in #{Dir.pwd.inspect}...") }
+    it { is_expected.to include("matches found") }
+  end
+
   context "when path is specified" do
     subject { `./exe/grepfruit -r 'TODO' ./spec/test_dataset` }
 
-    it { is_expected.to include("Searching for /TODO/ in \"./spec/test_dataset\"...") }
+    it { is_expected.to include(%r{Searching for /TODO/ in ".+/spec/test_dataset"...}) }
     it { is_expected.to include("bar.txt:7") }
     it { is_expected.to include("folder/bad.yml:21") }
     it { is_expected.to include("TODO: Add more details about feature 3.") }
@@ -30,7 +37,7 @@ RSpec.describe Grepfruit::Search do
   context "when full option name --regex is used" do
     subject { `./exe/grepfruit --regex 'TODO' ./spec/test_dataset` }
 
-    it { is_expected.to include("Searching for /TODO/ in \"./spec/test_dataset\"...") }
+    it { is_expected.to include(%r{Searching for /TODO/ in ".+/spec/test_dataset"...}) }
     it { is_expected.to include("bar.txt:7") }
     it { is_expected.to include("folder/bad.yml:21") }
     it { is_expected.to include("TODO: Add more details about feature 3.") }
@@ -44,7 +51,7 @@ RSpec.describe Grepfruit::Search do
   context "when more complex regex is specified" do
     subject { `./exe/grepfruit -r 'TODO|FIXME' ./spec/test_dataset` }
 
-    it { is_expected.to include("Searching for /TODO|FIXME/ in \"./spec/test_dataset\"...") }
+    it { is_expected.to include(%r{Searching for /TODO|FIXME/ in ".+/spec/test_dataset"...}) }
     it { is_expected.to include("baz.py:42") }
     it { is_expected.to include("This function is not working as expected") }
     it { is_expected.to include("bar.txt:7") }

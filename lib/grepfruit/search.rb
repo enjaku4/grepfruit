@@ -1,5 +1,6 @@
 require "pathname"
 require "find"
+require "byebug"
 
 require_relative "decorator"
 
@@ -10,7 +11,7 @@ module Grepfruit
     attr_reader :dir, :regex, :excluded_paths, :excluded_lines, :truncate, :search_hidden
 
     def initialize(dir:, regex:, exclude:, truncate:, search_hidden:)
-      @dir = dir
+      @dir = File.expand_path(dir)
       @regex = regex
       @excluded_lines, @excluded_paths = exclude.map { _1.split("/") }.partition { _1.last.include?(":") }
       @truncate = truncate
