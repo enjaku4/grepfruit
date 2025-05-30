@@ -1,3 +1,6 @@
+## v2.0.4
+- Fixed path resolution bug where searching in relative directories such as `.`, `./`, or `..` did not work correctly
+
 ## v2.0.3
 
 - Updated gemspec metadata to include the correct homepage URL
