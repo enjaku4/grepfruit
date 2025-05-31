@@ -13,7 +13,6 @@ Grepfruit is a Ruby gem for searching files within a directory for specified reg
 - Hidden file and directory search support
 - Configurable output truncation
 - CI/CD pipeline friendly with meaningful exit codes
-- Line-specific exclusion for precise control
 
 ## Table of Contents
 
