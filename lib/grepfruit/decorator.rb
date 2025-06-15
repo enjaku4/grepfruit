@@ -1,6 +1,6 @@
 module Grepfruit
   module Decorator
-    COLORS = { cyan: "\e[36m", red: "\e[31m", green: "\e[32m", reset: "\e[0m" }
+    COLORS = { cyan: "\e[36m", red: "\e[31m", green: "\e[32m", reset: "\e[0m" }.freeze
     private_constant :COLORS
 
     private
