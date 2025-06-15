@@ -19,13 +19,22 @@ Lint/AmbiguousOperatorPrecedence:
 Metrics/AbcSize:
   Enabled: false
 
+Metrics/ClassLength:
+  Enabled: false
+
 Metrics/CyclomaticComplexity:
   Enabled: false
 
 Metrics/MethodLength:
   Enabled: false
 
+Metrics/ParameterLists:
+  Enabled: false
+
 Metrics/PerceivedComplexity:
+  Enabled: false
+
+Naming/PredicateMethod:
   Enabled: false
 
 RSpec/ExampleWording:

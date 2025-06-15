@@ -74,16 +74,16 @@ module Grepfruit
       active_workers = {}
 
       workers.each do |worker|
-        if file_queue.any?
-          file_path = file_queue.shift
-          worker.send([file_path, regex, excluded_lines, truncate, dir])
-          active_workers[worker] = file_path
-        end
+        next unless file_queue.any?
+
+        file_path = file_queue.shift
+        worker.send([file_path, regex, excluded_lines, truncate, dir])
+        active_workers[worker] = file_path
       end
 
       while active_workers.any?
         ready_worker, result = Ractor.select(*active_workers.keys)
-        file_path = active_workers.delete(ready_worker)
+        active_workers.delete(ready_worker)
 
         file_results, has_matches = result
         files_processed += 1
@@ -99,11 +99,11 @@ module Grepfruit
           print green(".")
         end
 
-        if file_queue.any?
-          next_file = file_queue.shift
-          ready_worker.send([next_file, regex, excluded_lines, truncate, dir])
-          active_workers[ready_worker] = next_file
-        end
+        next unless file_queue.any?
+
+        next_file = file_queue.shift
+        ready_worker.send([next_file, regex, excluded_lines, truncate, dir])
+        active_workers[ready_worker] = next_file
       end
 
       workers.each(&:close_outgoing)
@@ -111,10 +111,10 @@ module Grepfruit
       display_results(all_lines, files_to_search.size, total_files_with_matches)
     end
 
-    def create_file_worker_ractor(worker_id)
+    def create_file_worker_ractor(_worker_id)
       Ractor.new do
         loop do
-          file_path, pattern, exc_lines, trunc, base_dir = Ractor.receive
+          file_path, pattern, exc_lines, _, base_dir = Ractor.receive
 
           results = []
           has_matches = false
@@ -123,7 +123,7 @@ module Grepfruit
             next unless line.valid_encoding?
             next unless line.match?(pattern)
 
-            relative_path = file_path.delete_prefix(base_dir + "/")
+            relative_path = file_path.delete_prefix("#{base_dir}/")
             next if exc_lines.any? { |exc| "#{relative_path}:#{line_num + 1}".end_with?(exc.join("/")) }
 
             results << [relative_path, line_num + 1, line]
