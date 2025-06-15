@@ -20,4 +20,6 @@ Gem::Specification.new do |spec|
   spec.bindir = "exe"
   spec.executables = ["grepfruit"]
   spec.require_paths = ["lib"]
+
+  spec.add_dependency "dry-cli", "~> 1.1"
 end
