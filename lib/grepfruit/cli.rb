@@ -13,6 +13,7 @@ module Grepfruit
       option :exclude, aliases: ["-e"], type: :array, default: [], desc: "Comma-separated list of files and directories to exclude"
       option :truncate, aliases: ["-t"], type: :integer, desc: "Truncate output to N characters"
       option :search_hidden, type: :boolean, default: false, desc: "Search hidden files and directories"
+      option :jobs, aliases: ["-j"], type: :integer, desc: "Number of parallel workers (default: all CPU cores, use 1 for sequential)"
 
       def call(path: ".", **options)
         unless options[:regex]
@@ -32,7 +33,8 @@ module Grepfruit
           regex: regex,
           exclude: options[:exclude] || [],
           truncate: options[:truncate]&.to_i,
-          search_hidden: options[:search_hidden] || false
+          search_hidden: options[:search_hidden] || false,
+          jobs: options[:jobs]&.to_i
         }
 
         Grepfruit::Search.new(**search_options).run
