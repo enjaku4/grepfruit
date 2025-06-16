@@ -1,20 +1,16 @@
-<!-- TODO -->
-
 # Grepfruit: File Pattern Search Tool for Ruby
 
 [![Gem Version](https://badge.fury.io/rb/grepfruit.svg)](http://badge.fury.io/rb/grepfruit)
 [![Github Actions badge](https://github.com/brownboxdev/grepfruit/actions/workflows/ci.yml/badge.svg)](https://github.com/brownboxdev/grepfruit/actions/workflows/ci.yml)
 
-Grepfruit is a Ruby gem for searching files within a directory for specified regular expression patterns, with intelligent exclusion options and colorized output for enhanced readability. Originally designed for CI/CD pipelines to search for `TODO` comments in Ruby on Rails applications, Grepfruit provides more user-friendly output than the standard `grep` command while maintaining the flexibility for diverse search scenarios.
+Grepfruit is a Ruby gem for searching files within a directory for specified regular expression patterns, with exclusion options and JSON-formatted or colorized output for enhanced readability. Originally designed for CI/CD pipelines to search for `TODO` comments in Ruby on Rails applications, Grepfruit provides more user-friendly output than the standard `grep` command while maintaining the flexibility for diverse search scenarios.
 
 **Key Features:**
 
-- Regular expression search within files and directories
-- Intelligent file and directory exclusion capabilities
+- Parallel search using Ractors
+- JSON output format for programmatic integration
 - Colorized output for improved readability
-- Hidden file and directory search support
-- Configurable output truncation
-- CI/CD pipeline friendly with meaningful exit codes
+- CI/CD pipeline friendly exit codes
 
 ## Table of Contents
 
@@ -32,19 +28,7 @@ Grepfruit is a Ruby gem for searching files within a directory for specified reg
 
 ## Installation
 
-Add Grepfruit to your Gemfile:
-
-```rb
-gem "grepfruit"
-```
-
 Install the gem:
-
-```bash
-bundle install
-```
-
-Or install it directly:
 
 ```bash
 gem install grepfruit
@@ -55,7 +39,13 @@ gem install grepfruit
 Search for regex patterns within files in a specified directory:
 
 ```bash
-grepfruit [options] PATH
+grepfruit search [options] [PATH]
+```
+
+Or using shorthand `s` command:
+
+```bash
+grepfruit s [options] [PATH]
 ```
 
 If no PATH is specified, Grepfruit searches the current directory.
@@ -67,7 +57,9 @@ If no PATH is specified, Grepfruit searches the current directory.
 | `-r, --regex REGEX` | Regex pattern to search for (required) |
 | `-e, --exclude x,y,z` | Comma-separated list of files, directories, or lines to exclude |
 | `-t, --truncate N` | Truncate search result output to N characters |
+| `-j, --jobs N` | Number of parallel workers (default: number of CPU cores) |
 | `--search-hidden` | Include hidden files and directories in search |
+| `--json` | Output results in JSON format |
 
 ## Usage Examples
 
@@ -76,7 +68,7 @@ If no PATH is specified, Grepfruit searches the current directory.
 Search for `TODO` comments in the current directory:
 
 ```bash
-grepfruit -r 'TODO'
+grepfruit search -r 'TODO'
 ```
 
 ### Excluding Directories
@@ -84,7 +76,7 @@ grepfruit -r 'TODO'
 Search for `TODO` patterns while excluding common build and dependency directories:
 
 ```bash
-grepfruit -r 'TODO' -e 'log,tmp,vendor,node_modules,assets'
+grepfruit search -r 'TODO' -e 'log,tmp,vendor,node_modules,assets'
 ```
 
 ### Multiple Pattern Search Excluding Both Directories and Files
@@ -92,7 +84,7 @@ grepfruit -r 'TODO' -e 'log,tmp,vendor,node_modules,assets'
 Search for both `FIXME` and `TODO` comments in a specific directory:
 
 ```bash
-grepfruit -r 'FIXME|TODO' -e 'bin,tmp/log,Gemfile.lock' dev/grepfruit
+grepfruit search -r 'FIXME|TODO' -e 'bin,tmp/log,Gemfile.lock' dev/my_app
 ```
 
 ### Line-Specific Exclusion
@@ -100,7 +92,7 @@ grepfruit -r 'FIXME|TODO' -e 'bin,tmp/log,Gemfile.lock' dev/grepfruit
 Exclude specific lines from search results:
 
 ```bash
-grepfruit -r 'FIXME|TODO' -e 'README.md:18'
+grepfruit search -r 'FIXME|TODO' -e 'README.md:18'
 ```
 
 ### Output Truncation
@@ -108,7 +100,7 @@ grepfruit -r 'FIXME|TODO' -e 'README.md:18'
 Limit output length for cleaner results:
 
 ```bash
-grepfruit -r 'FIXME|TODO' -t 50
+grepfruit search -r 'FIXME|TODO' -t 50
 ```
 
 ### Including Hidden Files
@@ -116,15 +108,58 @@ grepfruit -r 'FIXME|TODO' -t 50
 Search hidden files and directories:
 
 ```bash
-grepfruit -r 'FIXME|TODO' --search-hidden
+grepfruit search -r 'FIXME|TODO' --search-hidden
+```
+
+### JSON Output for Automation
+
+Get structured JSON output for scripts and CI/CD pipelines:
+
+```bash
+grepfruit search -r 'TODO' --json
+```
+
+This outputs a structured JSON response containing search metadata, summary statistics, and detailed match information:
+
+```json
+{
+  "search": {
+    "pattern": "/TODO/",
+    "directory": "/path/to/search",
+    "exclusions": ["node_modules"],
+    "timestamp": "2025-01-16T10:30:00+00:00"
+  },
+  "summary": {
+    "files_checked": 42,
+    "files_with_matches": 8,
+    "total_matches": 23
+  },
+  "matches": [
+    {
+      "file": "src/main.js",
+      "line": 15,
+      "content": "// TODO: Implement error handling"
+    },
+    ...
+  ]
+}
+```
+
+### Parallel Processing
+
+Control the number of parallel workers:
+
+```bash
+grepfruit search -r 'TODO' -j 8  # Use 8 parallel workers
+grepfruit search -r 'TODO' -j 1  # Sequential processing
 ```
 
 ## Exit Status
 
 Grepfruit returns meaningful exit codes for CI/CD integration:
 
-- **Exit code 0**: No matches found
-- **Exit code 1**: Pattern matches were found
+- **Exit code 0**: No matches found (ideal for quality gates - code is clean)
+- **Exit code 1**: Pattern matches were found (CI should fail - issues detected)
 
 ## Contributing
 
