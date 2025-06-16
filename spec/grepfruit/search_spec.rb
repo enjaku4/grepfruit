@@ -184,4 +184,104 @@ RSpec.describe Grepfruit::Search do
     it { is_expected.to include("16 matches found") }
     it { is_expected.to include("4 files checked") }
   end
+
+  context "edge cases and additional scenarios" do
+    context "when searching a single file directly" do
+      subject { `./exe/grepfruit search -r 'TODO' ./spec/test_dataset/bar.txt` }
+
+      it { is_expected.to include("1 file checked") }
+      it { is_expected.to include("3 matches found") }
+      it { is_expected.to include("in 1 file") }
+    end
+
+    context "when searching non-existent directory" do
+      subject { `./exe/grepfruit search -r 'TODO' ./nonexistent` }
+
+      it { is_expected.to include("0 files checked") }
+      it { is_expected.to include("no matches found") }
+    end
+
+    context "when using case-sensitive regex" do
+      subject { `./exe/grepfruit search -r 'todo' ./spec/test_dataset` }
+
+      it { is_expected.to include("no matches found") }
+    end
+
+    context "when using case-insensitive regex with flags" do
+      subject { `./exe/grepfruit search -r '(?i)todo' ./spec/test_dataset` }
+
+      it { is_expected.to include("matches found") }
+      it { is_expected.to include("TODO") }
+    end
+
+    context "when truncation length is longer than content" do
+      subject { `./exe/grepfruit search -r 'TODO' -t 200 ./spec/test_dataset` }
+
+      it { is_expected.to include("TODO: Fix the alignment issue in the header.") }
+      it { is_expected.to include("16 matches found") }
+    end
+
+    context "when truncation length is very small" do
+      subject { `./exe/grepfruit search -r 'TODO' -t 5 ./spec/test_dataset` }
+
+      it { is_expected.to include("TODO:...") }
+    end
+
+    context "when exclude pattern matches full directory path" do
+      subject { `./exe/grepfruit search -r 'TODO' -e 'folder' ./spec/test_dataset` }
+
+      it { is_expected.not_to include("folder/bad.yml") }
+      it { is_expected.to include("bar.txt") }
+      it { is_expected.to include("3 files checked") }
+    end
+
+    context "when multiple exclude patterns are used" do
+      subject { `./exe/grepfruit search -r 'TODO' -e 'bar.txt,folder' ./spec/test_dataset` }
+
+      it { is_expected.not_to include("bar.txt") }
+      it { is_expected.not_to include("folder/bad.yml") }
+      it { is_expected.to include("foo.md") }
+      it { is_expected.to include("2 files checked") }
+    end
+
+    context "when regex contains special characters" do
+      subject { `./exe/grepfruit search -r '\\d+' ./spec/test_dataset` }
+
+      it { is_expected.to include("matches found") }
+    end
+
+    context "when using anchored regex" do
+      subject { `./exe/grepfruit search -r '^TODO' ./spec/test_dataset` }
+
+      it { is_expected.to include("matches found") }
+      it { is_expected.to include("bar.txt") }
+    end
+
+    context "when searching for whitespace patterns" do
+      subject { `./exe/grepfruit search -r '\\s+TODO' ./spec/test_dataset` }
+
+      it { is_expected.to include("matches found") }
+    end
+
+    context "when jobs count equals number of files" do
+      subject { `./exe/grepfruit search -r 'TODO' -j 4 ./spec/test_dataset` }
+
+      it { is_expected.to include("4 files checked") }
+      it { is_expected.to include("16 matches found") }
+    end
+
+    context "when jobs count exceeds number of files" do
+      subject { `./exe/grepfruit search -r 'TODO' -j 10 ./spec/test_dataset` }
+
+      it { is_expected.to include("4 files checked") }
+      it { is_expected.to include("16 matches found") }
+    end
+
+    context "when using alias 's' for search command" do
+      subject { `./exe/grepfruit s -r 'TODO' ./spec/test_dataset` }
+
+      it { is_expected.to include("16 matches found") }
+      it { is_expected.to include("4 files checked") }
+    end
+  end
 end
