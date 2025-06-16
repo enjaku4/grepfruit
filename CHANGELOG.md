@@ -1,4 +1,9 @@
-<!-- TODO -->
+## v3.0.0
+
+- Dropped support for Ruby 3.1
+- Optimized search algorithm for better performance
+- Changed the interface: now use `grepfruit search` instead of just `grepfruit` to perform searches
+- Added JSON output format for search results
 
 ## v2.0.4
 
