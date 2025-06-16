@@ -37,7 +37,13 @@ Metrics/PerceivedComplexity:
 Naming/PredicateMethod:
   Enabled: false
 
+RSpec/ExampleLength:
+  Enabled: false
+
 RSpec/ExampleWording:
+  Enabled: false
+
+RSpec/MultipleExpectations:
   Enabled: false
 
 RSpec/NamedSubject:
@@ -56,6 +62,9 @@ Style/MutableConstant:
   Enabled: false
 
 Style/ParallelAssignment:
+  Enabled: false
+
+Style/SpecialGlobalVars:
   Enabled: false
 
 Style/StringLiterals:

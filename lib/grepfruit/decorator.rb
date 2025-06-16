@@ -34,13 +34,13 @@ module Grepfruit
     end
 
     def display_json_results(raw_matches, total_files, files_with_matches)
-      require 'json'
+      require "json"
 
       search_info = {
         pattern: regex.inspect,
         directory: dir,
-        exclusions: (excluded_paths + excluded_lines).map { |path_parts| path_parts.join('/') },
-        timestamp: @start_time.strftime('%Y-%m-%dT%H:%M:%S%z')
+        exclusions: (excluded_paths + excluded_lines).map { |path_parts| path_parts.join("/") },
+        timestamp: @start_time.strftime("%Y-%m-%dT%H:%M:%S%z")
       }
 
       summary = {
