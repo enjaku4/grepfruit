@@ -38,7 +38,29 @@ module Grepfruit
 
     def process_files(files)
       all_lines, total_files_with_matches = [], 0
-      workers = Array.new(jobs) { create_file_worker_ractor }
+      workers = Array.new(jobs) do
+        Ractor.new do
+          loop do
+            file_path, pattern, exc_lines, base_dir = Ractor.receive
+
+            results = []
+            has_matches = false
+
+            File.foreach(file_path).with_index do |line, line_num|
+              next unless line.valid_encoding? && line.match?(pattern)
+
+              relative_path = file_path.delete_prefix("#{base_dir}/")
+              next if exc_lines.any? { |exc| "#{relative_path}:#{line_num + 1}".end_with?(exc.join("/")) }
+
+              results << [relative_path, line_num + 1, line]
+              has_matches = true
+            end
+
+            Ractor.yield([results, has_matches])
+          end
+        end
+      end
+
       total_files = files.size
       active_workers = {}
 
@@ -68,7 +90,7 @@ module Grepfruit
         next if files.empty?
 
         next_file = files.shift
-        ready_worker.send([next_file, regex, excluded_lines, truncate, dir])
+        ready_worker.send([next_file, regex, excluded_lines, dir])
         active_workers[ready_worker] = next_file
       end
 
@@ -77,47 +99,16 @@ module Grepfruit
       display_results(all_lines, total_files, total_files_with_matches)
     end
 
-    def create_file_worker_ractor
-      Ractor.new do
-        loop do
-          file_path, pattern, exc_lines, base_dir = Ractor.receive
-
-          results = []
-          has_matches = false
-
-          File.foreach(file_path).with_index do |line, line_num|
-            next unless line.valid_encoding? && line.match?(pattern)
-
-            relative_path = file_path.delete_prefix("#{base_dir}/")
-            next if exc_lines.any? { |exc| "#{relative_path}:#{line_num + 1}".end_with?(exc.join("/")) }
-
-            results << [relative_path, line_num + 1, line]
-            has_matches = true
-          end
-
-          Ractor.yield([results, has_matches])
-        end
-      end
-    end
-
     def not_searchable?(path)
       File.directory?(path) || File.symlink?(path)
     end
 
     def excluded_path?(path)
-      excluded?(excluded_paths, relative_path(path)) || (!search_hidden && hidden?(path))
-    end
-
-    def excluded_line?(path, line_num)
-      excluded?(excluded_lines, relative_path_with_line_num(path, line_num))
+      excluded?(excluded_paths, relative_path(path)) || (!search_hidden && File.basename(path).start_with?("."))
     end
 
     def excluded?(list, path)
       list.any? { path.split("/").last(_1.length) == _1 }
-    end
-
-    def hidden?(path)
-      File.basename(path).start_with?(".")
     end
   end
 end

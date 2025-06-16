@@ -34,16 +34,14 @@ module Grepfruit
           exit 1
         end
 
-        search_options = {
+        Grepfruit::Search.new(
           dir: path,
-          regex: regex,
+          regex:,
           exclude: options[:exclude] || [],
-          truncate: options[:truncate].to_i,
+          truncate: options[:truncate]&.to_i,
           search_hidden: !!options[:search_hidden],
-          jobs: jobs
-        }
-
-        Grepfruit::Search.new(**search_options).run
+          jobs:
+        ).run
       end
     end
 
