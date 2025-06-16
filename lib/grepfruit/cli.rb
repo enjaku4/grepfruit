@@ -16,32 +16,36 @@ module Grepfruit
       option :jobs, aliases: ["-j"], type: :integer, desc: "Number of parallel workers (default: all CPU cores, use 1 for sequential)"
 
       def call(path: ".", **options)
-        unless options[:regex]
-          puts "Error: You must specify a regex pattern using the -r or --regex option."
-          exit 1
-        end
-
-        begin
-          regex = Regexp.new(options[:regex])
-        rescue RegexpError => e
-          puts "Error: Invalid regex pattern - #{e.message}"
-          exit 1
-        end
-
-        jobs = options[:jobs]&.to_i
-        if jobs && jobs < 1
-          puts "Error: Number of jobs must be at least 1"
-          exit 1
-        end
+        validate_options!(options)
 
         Grepfruit::Search.new(
           dir: path,
-          regex:,
+          regex: create_regex(options[:regex]),
           exclude: options[:exclude] || [],
           truncate: options[:truncate]&.to_i,
           search_hidden: !!options[:search_hidden],
-          jobs:
+          jobs: options[:jobs]&.to_i
         ).run
+      end
+
+      private
+
+      def validate_options!(options)
+        error_exit("You must specify a regex pattern using the -r or --regex option.") unless options[:regex]
+
+        jobs = options[:jobs]&.to_i
+        error_exit("Number of jobs must be at least 1") if jobs && jobs < 1
+      end
+
+      def create_regex(pattern)
+        Regexp.new(pattern)
+      rescue RegexpError => e
+        error_exit("Invalid regex pattern - #{e.message}")
+      end
+
+      def error_exit(message)
+        puts "Error: #{message}"
+        exit 1
       end
     end
 

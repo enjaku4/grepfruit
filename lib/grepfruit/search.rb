@@ -1,4 +1,3 @@
-require "pathname"
 require "find"
 require "etc"
 
@@ -24,21 +23,44 @@ module Grepfruit
     def run
       puts "Searching for #{regex.inspect} in #{dir.inspect}...\n\n"
 
-      process_files_streaming
+      all_lines, total_files_with_matches, total_files = [], 0, 0
+      workers = create_workers
+      file_enumerator = create_file_enumerator
+      active_workers = {}
+
+      workers.each do |worker|
+        next unless (file_path = file_enumerator.next rescue nil)
+
+        worker.send([file_path, regex, excluded_lines, dir])
+        active_workers[worker] = file_path
+        total_files += 1
+      end
+
+      while active_workers.any?
+        ready_worker, (file_results, has_matches) = Ractor.select(*active_workers.keys)
+        active_workers.delete(ready_worker)
+
+        total_files_with_matches += 1 if process_worker_result(file_results, has_matches, all_lines)
+
+        if (next_file = file_enumerator.next rescue nil)
+          ready_worker.send([next_file, regex, excluded_lines, dir])
+          active_workers[ready_worker] = next_file
+          total_files += 1
+        end
+      end
+
+      workers.each(&:close_outgoing)
+      display_results(all_lines, total_files, total_files_with_matches)
     end
 
     private
 
-    def process_files_streaming
-      all_lines, total_files_with_matches, total_files = [], 0, 0
-
-      workers = Array.new(jobs) do
+    def create_workers
+      Array.new(jobs) do
         Ractor.new do
           loop do
             file_path, pattern, exc_lines, base_dir = Ractor.receive
-
-            results = []
-            has_matches = false
+            results, has_matches = [], false
 
             File.foreach(file_path).with_index do |line, line_num|
               next unless line.valid_encoding? && line.match?(pattern)
@@ -54,57 +76,29 @@ module Grepfruit
           end
         end
       end
-
-      file_enumerator = Enumerator.new do |yielder|
-        Find.find(dir) do |path|
-          Find.prune if excluded_path?(path)
-          yielder << path unless not_searchable?(path)
-        end
-      end
-
-      active_workers = {}
-      pending_files = 0
-
-      workers.each do |worker|
-        if (file_path = file_enumerator.next rescue nil)
-          worker.send([file_path, regex, excluded_lines, dir])
-          active_workers[worker] = file_path
-          pending_files += 1
-          total_files += 1
-        end
-      end
-
-      while active_workers.any?
-        ready_worker, (file_results, has_matches) = Ractor.select(*active_workers.keys)
-        active_workers.delete(ready_worker)
-        pending_files -= 1
-
-        if has_matches
-          colored_lines = file_results.map do |relative_path, line_num, line_content|
-            "#{cyan("#{relative_path}:#{line_num}")}: #{processed_line(line_content)}"
-          end
-          all_lines.concat(colored_lines)
-          total_files_with_matches += 1
-          print red("M")
-        else
-          print green(".")
-        end
-
-        if (next_file = file_enumerator.next rescue nil)
-          ready_worker.send([next_file, regex, excluded_lines, dir])
-          active_workers[ready_worker] = next_file
-          pending_files += 1
-          total_files += 1
-        end
-      end
-
-      workers.each(&:close_outgoing)
-
-      display_results(all_lines, total_files, total_files_with_matches)
     end
 
-    def not_searchable?(path)
-      File.directory?(path) || File.symlink?(path)
+    def create_file_enumerator
+      Enumerator.new do |yielder|
+        Find.find(dir) do |path|
+          Find.prune if excluded_path?(path)
+          yielder << path unless File.directory?(path) || File.symlink?(path)
+        end
+      end
+    end
+
+    def process_worker_result(file_results, has_matches, all_lines)
+      if has_matches
+        colored_lines = file_results.map do |relative_path, line_num, line_content|
+          "#{cyan("#{relative_path}:#{line_num}")}: #{processed_line(line_content)}"
+        end
+        all_lines.concat(colored_lines)
+        print red("M")
+        true
+      else
+        print green(".")
+        false
+      end
     end
 
     def excluded_path?(path)
