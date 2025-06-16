@@ -29,7 +29,8 @@ module Grepfruit
       active_workers = {}
 
       workers.each do |worker|
-        next unless (file_path = file_enumerator.next rescue nil)
+        file_path = get_next_file(file_enumerator)
+        next unless file_path
 
         worker.send([file_path, regex, excluded_lines, dir])
         active_workers[worker] = file_path
@@ -42,7 +43,8 @@ module Grepfruit
 
         total_files_with_matches += 1 if process_worker_result(file_results, has_matches, all_lines)
 
-        if (next_file = file_enumerator.next rescue nil)
+        next_file = get_next_file(file_enumerator)
+        if next_file
           ready_worker.send([next_file, regex, excluded_lines, dir])
           active_workers[ready_worker] = next_file
           total_files += 1
@@ -54,6 +56,12 @@ module Grepfruit
     end
 
     private
+
+    def get_next_file(enumerator)
+      enumerator.next
+    rescue StopIteration
+      nil
+    end
 
     def create_workers
       Array.new(jobs) do
@@ -80,9 +88,17 @@ module Grepfruit
 
     def create_file_enumerator
       Enumerator.new do |yielder|
-        Find.find(dir) do |path|
-          Find.prune if excluded_path?(path)
-          yielder << path unless File.directory?(path) || File.symlink?(path)
+        begin
+          Find.find(dir) do |path|
+            Find.prune if excluded_path?(path)
+
+            next unless File.file?(path)
+
+            yielder << path
+          end
+        rescue Errno::ENOENT
+          puts "Error: Directory '#{dir}' does not exist."
+          exit 1
         end
       end
     end

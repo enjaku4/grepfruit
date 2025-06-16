@@ -169,8 +169,8 @@ RSpec.describe Grepfruit::Search do
     context "when searching non-existent directory" do
       subject { `./exe/grepfruit search -r 'TODO' ./nonexistent` }
 
-      it { is_expected.to include("0 files checked") }
-      it { is_expected.to include("no matches found") }
+      it { is_expected.to include("Error: Directory") }
+      it { is_expected.to include("does not exist") }
     end
 
     context "when jobs count exceeds number of files" do
