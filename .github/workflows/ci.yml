@@ -15,11 +15,11 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.1
+          ruby-version: 3.2
       - name: Bundle install
         run: bundle install
       - name: Run Todo Search
-        run: ./exe/grepfruit -r 'TODO' -e 'vendor,.yardoc,.git,ci.yml:22,README.md,spec/grepfruit/search_spec.rb,spec/test_dataset' --search-hidden
+        run: ./exe/grepfruit s -r 'TODO' -e 'vendor,.yardoc,.git,ci.yml:22,README.md,spec/grepfruit/search_spec.rb,spec/test_dataset' --search-hidden
 
 
   linting:
@@ -33,7 +33,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.1
+          ruby-version: 3.2
       - name: Bundle install
         run: bundle install
       - name: Run RuboCop
@@ -48,7 +48,6 @@ jobs:
     strategy:
       matrix:
         ruby:
-          - "3.1"
           - "3.2"
           - "3.3"
           - "3.4"

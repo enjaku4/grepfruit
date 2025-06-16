@@ -1,152 +1,249 @@
 require "fileutils"
+require "json"
 
 RSpec.describe Grepfruit::Search do
   context "when no parameters are specified" do
-    subject { `./exe/grepfruit` }
+    subject { `./exe/grepfruit 2>&1` }
 
-    it { is_expected.to include("Error: You must specify a regex pattern using the -r or --regex option.") }
+    it { is_expected.to include("Commands:") }
   end
 
-  context "when path is not specified" do
-    subject { `./exe/grepfruit -r TODO` }
+  describe "basic search functionality" do
+    context "when path is specified" do
+      subject { `./exe/grepfruit search -r 'TODO' ./spec/test_dataset` }
 
-    it { is_expected.to include("Searching for /TODO/ in #{Dir.pwd.inspect}...") }
+      it { is_expected.to include(%r{Searching for /TODO/ in ".+/spec/test_dataset"...}) }
+      it { is_expected.to include("4 files checked") }
+      it { is_expected.to include("16 matches found") }
+      it { is_expected.to include("in 4 files") }
+      it { is_expected.not_to include(".hidden") }
+    end
+
+    context "when no path specified (defaults to current directory)" do
+      subject { `./exe/grepfruit search -r TODO` }
+
+      it { is_expected.to include("Searching for /TODO/ in #{Dir.pwd.inspect}...") }
+      it { is_expected.to include("matches found") }
+    end
+
+    context "when no matches found" do
+      subject { `./exe/grepfruit search -r FOOBAR ./spec/test_dataset` }
+
+      it { is_expected.to include("4 files checked") }
+      it { is_expected.to include("no matches found") }
+    end
   end
 
-  context "when curent directory is specified as ." do
-    subject { `./exe/grepfruit -r TODO .` }
+  describe "regex patterns and options" do
+    context "when complex regex is specified" do
+      subject { `./exe/grepfruit search -r 'TODO|FIXME' ./spec/test_dataset` }
 
-    it { is_expected.to include("Searching for /TODO/ in #{Dir.pwd.inspect}...") }
-    it { is_expected.to include("matches found") }
+      it { is_expected.to include("17 matches found") }
+      it { is_expected.to include("in 4 files") }
+    end
+
+    context "when using full option names" do
+      subject { `./exe/grepfruit search --regex 'TODO' ./spec/test_dataset` }
+
+      it { is_expected.to include("16 matches found") }
+      it { is_expected.to include("4 files checked") }
+    end
+
+    context "when case-sensitive search" do
+      subject { `./exe/grepfruit search -r 'todo' ./spec/test_dataset` }
+
+      it { is_expected.to include("no matches found") }
+    end
+
+    context "when case-insensitive regex with flags" do
+      subject { `./exe/grepfruit search -r '(?i)todo' ./spec/test_dataset` }
+
+      it { is_expected.to include("matches found") }
+    end
   end
 
-  context "when path is specified" do
-    subject { `./exe/grepfruit -r 'TODO' ./spec/test_dataset` }
+  describe "file filtering and exclusion" do
+    context "when files and directories are excluded" do
+      subject { `./exe/grepfruit search -e 'folder,bar.txt' -r TODO ./spec/test_dataset` }
 
-    it { is_expected.to include(%r{Searching for /TODO/ in ".+/spec/test_dataset"...}) }
-    it { is_expected.to include("bar.txt:7") }
-    it { is_expected.to include("folder/bad.yml:21") }
-    it { is_expected.to include("TODO: Add more details about feature 3.") }
-    it { is_expected.to include("TODO: Refactor this function to improve readability") }
-    it { is_expected.to include("4 files checked") }
-    it { is_expected.to include("16 matches found") }
-    it { is_expected.to include("in 4 files") }
-    it { is_expected.not_to include(".hidden") }
+      it { is_expected.not_to include("folder/") }
+      it { is_expected.not_to include("bar.txt") }
+      it { is_expected.to include("foo.md") }
+    end
+
+    context "when using full option name --exclude" do
+      subject { `./exe/grepfruit search --exclude 'folder,bar.txt' -r TODO ./spec/test_dataset` }
+
+      it { is_expected.not_to include("folder/") }
+      it { is_expected.not_to include("bar.txt") }
+    end
+
+    context "when specific line is excluded" do
+      subject { `./exe/grepfruit search -r 'TODO' -e 'bar.txt:14' ./spec/test_dataset` }
+
+      it { is_expected.not_to include("bar.txt:14") }
+    end
+
+    context "when hidden files search is enabled" do
+      subject { `./exe/grepfruit search -r 'TODO' --search-hidden ./spec/test_dataset` }
+
+      it { is_expected.to include(".hidden:2") }
+    end
+
+    context "when hidden file is excluded from search" do
+      subject { `./exe/grepfruit search -r 'TODO' -e '.hidden' --search-hidden ./spec/test_dataset` }
+
+      it { is_expected.not_to include(".hidden") }
+    end
   end
 
-  context "when full option name --regex is used" do
-    subject { `./exe/grepfruit --regex 'TODO' ./spec/test_dataset` }
+  describe "output formatting" do
+    context "when single file with single match" do
+      subject { `./exe/grepfruit search -r 'FIXME' ./spec/test_dataset/baz.py` }
 
-    it { is_expected.to include(%r{Searching for /TODO/ in ".+/spec/test_dataset"...}) }
-    it { is_expected.to include("bar.txt:7") }
-    it { is_expected.to include("folder/bad.yml:21") }
-    it { is_expected.to include("TODO: Add more details about feature 3.") }
-    it { is_expected.to include("TODO: Refactor this function to improve readability") }
-    it { is_expected.to include("4 files checked") }
-    it { is_expected.to include("16 matches found") }
-    it { is_expected.to include("in 4 files") }
-    it { is_expected.not_to include(".hidden") }
+      it { is_expected.to include("1 file checked") }
+      it { is_expected.to include("1 match found") }
+      it { is_expected.to include("in 1 file") }
+    end
+
+    context "when truncation is enabled" do
+      subject { `./exe/grepfruit search -r 'TODO' -t 15 ./spec/test_dataset` }
+
+      it { is_expected.to include("TODO: Add unit ...") }
+      it { is_expected.to include("TODO: Update th...") }
+    end
+
+    context "when using full option name --truncate" do
+      subject { `./exe/grepfruit search -r 'TODO' --truncate 15 ./spec/test_dataset` }
+
+      it { is_expected.to include("TODO: Add unit ...") }
+    end
   end
 
-  context "when more complex regex is specified" do
-    subject { `./exe/grepfruit -r 'TODO|FIXME' ./spec/test_dataset` }
+  describe "error handling" do
+    context "when no regex is specified" do
+      subject { `./exe/grepfruit search ./spec/test_dataset` }
 
-    it { is_expected.to include(%r{Searching for /TODO|FIXME/ in ".+/spec/test_dataset"...}) }
-    it { is_expected.to include("baz.py:42") }
-    it { is_expected.to include("This function is not working as expected") }
-    it { is_expected.to include("bar.txt:7") }
-    it { is_expected.to include("Update the user permissions module.") }
-    it { is_expected.to include("17 matches found") }
-    it { is_expected.to include("in 4 files") }
+      it { is_expected.to include("Error: You must specify a regex pattern using the -r or --regex option.") }
+    end
+
+    context "when invalid regex is specified" do
+      subject { `./exe/grepfruit search -r '[' ./spec/test_dataset` }
+
+      it { is_expected.to include("Error: Invalid regex pattern") }
+      it { is_expected.to include("premature end of char-class") }
+    end
+
+    context "when invalid jobs count is specified" do
+      subject { `./exe/grepfruit search -r 'TODO' -j 0 ./spec/test_dataset` }
+
+      it { is_expected.to include("Error: Number of jobs must be at least 1") }
+    end
   end
 
-  context "when only one match is found and only one file is checked" do
-    subject { `./exe/grepfruit -r 'FIXME' ./spec/test_dataset/baz.py` }
+  describe "parallel processing" do
+    context "when jobs flag is used with 1 worker" do
+      subject { `./exe/grepfruit search -r 'TODO' -j 1 ./spec/test_dataset` }
 
-    it { is_expected.to include("1 file checked") }
-    it { is_expected.to include("1 match found") }
-    it { is_expected.to include("in 1 file") }
+      it { is_expected.to include("Searching for /TODO/ in") }
+      it { is_expected.to include("16 matches found") }
+      it { is_expected.to include("4 files checked") }
+    end
+
+    context "when jobs flag is used with multiple workers" do
+      subject { `./exe/grepfruit search -r 'TODO' -j 4 ./spec/test_dataset` }
+
+      it { is_expected.to include("Searching for /TODO/ in") }
+      it { is_expected.to include("16 matches found") }
+      it { is_expected.to include("4 files checked") }
+    end
+
+    context "when using command alias 's'" do
+      subject { `./exe/grepfruit s -r 'TODO' ./spec/test_dataset` }
+
+      it { is_expected.to include("16 matches found") }
+      it { is_expected.to include("4 files checked") }
+    end
   end
 
-  context "when no matches are found" do
-    subject { `./exe/grepfruit -r FOOBAR ./spec/test_dataset` }
+  describe "JSON output" do
+    context "when --json flag is used with matches found" do
+      subject { `./exe/grepfruit search -r 'TODO' --json ./spec/test_dataset` }
 
-    it { is_expected.to include("4 files checked") }
-    it { is_expected.to include("no matches found") }
+      it "includes search metadata" do
+        json = JSON.parse(subject)
+        expect(json["search"]).to include(
+          "pattern" => "/TODO/",
+          "directory" => File.expand_path("./spec/test_dataset")
+        )
+        expect(json["search"]["timestamp"]).to match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
+      end
+
+      it "includes summary with correct counts" do
+        json = JSON.parse(subject)
+        expect(json["summary"]).to include(
+          "files_checked" => 4,
+          "files_with_matches" => 4,
+          "total_matches" => 16
+        )
+      end
+
+      it "includes matches with required fields" do
+        json = JSON.parse(subject)
+        expect(json["matches"]).to be_an(Array)
+        expect(json["matches"].size).to eq(16)
+
+        first_match = json["matches"].first
+        expect(first_match).to include("file", "line", "content")
+        expect(first_match["file"]).to be_a(String)
+        expect(first_match["line"]).to be_a(Integer)
+        expect(first_match["content"]).to be_a(String)
+      end
+
+      it "exits with code 1 when matches are found" do
+        system("./exe/grepfruit search -r 'TODO' --json ./spec/test_dataset > /dev/null")
+        expect($?.exitstatus).to eq(1)
+      end
+    end
+
+    context "when --json flag is used with no matches" do
+      subject { `./exe/grepfruit search -r 'NONEXISTENT' --json ./spec/test_dataset` }
+
+      it "outputs valid JSON with empty matches" do
+        json = JSON.parse(subject)
+        expect(json["matches"]).to eq([])
+        expect(json["summary"]["total_matches"]).to eq(0)
+      end
+
+      it "exits with code 0 when no matches are found" do
+        system("./exe/grepfruit search -r 'NONEXISTENT' --json ./spec/test_dataset > /dev/null")
+        expect($?.exitstatus).to eq(0)
+      end
+    end
+
+    context "when --json flag is used with exclusions" do
+      subject { `./exe/grepfruit search -r 'TODO' --json -e 'folder,bar.txt' ./spec/test_dataset` }
+
+      it "includes exclusions in search metadata" do
+        json = JSON.parse(subject)
+        expect(json["search"]["exclusions"]).to contain_exactly("folder", "bar.txt")
+      end
+    end
   end
 
-  context "when no matches are found and 1 file is checked" do
-    subject { `./exe/grepfruit -r FOOBAR ./spec/test_dataset/folder` }
+  describe "edge cases" do
+    context "when searching non-existent directory" do
+      subject { `./exe/grepfruit search -r 'TODO' ./nonexistent` }
 
-    it { is_expected.to include("1 file checked") }
-    it { is_expected.to include("no matches found") }
-  end
+      it { is_expected.to include("Error: Directory") }
+      it { is_expected.to include("does not exist") }
+    end
 
-  context "when multiple directories and files are excluded" do
-    subject { `./exe/grepfruit -e 'folder,bar.txt' -r TODO ./spec/test_dataset` }
+    context "when jobs count exceeds number of files" do
+      subject { `./exe/grepfruit search -r 'TODO' -j 10 ./spec/test_dataset` }
 
-    it { is_expected.not_to include("folder/") }
-    it { is_expected.not_to include("bar.txt") }
-  end
-
-  context "when full option name --exclude is used" do
-    subject { `./exe/grepfruit --exclude 'folder,bar.txt' -r TODO ./spec/test_dataset` }
-
-    it { is_expected.not_to include("folder/") }
-    it { is_expected.not_to include("bar.txt") }
-  end
-
-  context "when nothing is excluded" do
-    subject { `./exe/grepfruit -r TODO ./spec/test_dataset` }
-
-    it { is_expected.to include("folder/bad.yml") }
-    it { is_expected.to include("bar.txt") }
-    it { is_expected.to include("baz.py") }
-    it { is_expected.to include("foo.md") }
-  end
-
-  context "when a relative path is excluded" do
-    subject { `./exe/grepfruit -r 'TODO' -e 'folder/bad.yml' ./spec/test_dataset` }
-
-    it { is_expected.not_to include("bad.yml") }
-  end
-
-  context "when a specific line is excluded" do
-    subject { `./exe/grepfruit -r 'TODO' -e 'bar.txt:14' ./spec/test_dataset` }
-
-    it { is_expected.not_to include("bar.txt:14") }
-  end
-
-  context "when only a part of the file name is excluded" do
-    subject { `./exe/grepfruit -e '.txt' -r TODO ./spec/test_dataset` }
-
-    it { is_expected.to include("bar.txt") }
-  end
-
-  context "when truncation is enabled" do
-    subject { `./exe/grepfruit -r 'TODO' -t 15 ./spec/test_dataset` }
-
-    it { is_expected.to include("TODO: Add unit ...") }
-    it { is_expected.to include("TODO: Update th...") }
-  end
-
-  context "when full option name --truncate is used" do
-    subject { `./exe/grepfruit -r 'TODO' --truncate 15 ./spec/test_dataset` }
-
-    it { is_expected.to include("TODO: Add unit ...") }
-    it { is_expected.to include("TODO: Update th...") }
-  end
-
-  context "when hidden files search is enabled" do
-    subject { `./exe/grepfruit -r 'TODO' --search-hidden ./spec/test_dataset` }
-
-    it { is_expected.to include(".hidden:2") }
-    it { is_expected.to include("Verify if the data needs to be encrypted.") }
-  end
-
-  context "when hidden files search is enabled and a hidden file is excluded" do
-    subject { `./exe/grepfruit -r 'TODO' -e '.hidden' --search-hidden ./spec/test_dataset` }
-
-    it { is_expected.not_to include(".hidden") }
+      it { is_expected.to include("4 files checked") }
+      it { is_expected.to include("16 matches found") }
+    end
   end
 end

@@ -1,31 +1,9 @@
 #!/usr/bin/env ruby
 
+RubyVM::YJIT.enable if defined?(RubyVM::YJIT) && RubyVM::YJIT.respond_to?(:enable)
+
 $LOAD_PATH.unshift("#{__dir__}/../lib")
 
-require "optparse"
 require "grepfruit"
 
-options = {
-  dir: ".",
-  regex: nil,
-  exclude: [],
-  truncate: nil,
-  search_hidden: false
-}
-
-OptionParser.new do |opts|
-  opts.banner = "Usage: grepfruit [options] PATH"
-  opts.on("-r", "--regex REGEX", Regexp, "Regex pattern to search for") { options[:regex] = _1 }
-  opts.on("-e", "--exclude x,y,z", Array, "Comma-separated list of files and directories to exclude") { options[:exclude] = _1 }
-  opts.on("-t", "--truncate N", Integer, "Truncate output to N characters") { options[:truncate] = _1 }
-  opts.on("--search-hidden", TrueClass, "Search hidden files and directories") { options[:search_hidden] = _1 }
-end.parse!
-
-if options[:regex].nil?
-  puts "Error: You must specify a regex pattern using the -r or --regex option."
-  exit 1
-end
-
-options[:dir] = ARGV[0] if ARGV[0]
-
-Grepfruit::Search.new(**options).run
+Grepfruit::CLI.start(ARGV)

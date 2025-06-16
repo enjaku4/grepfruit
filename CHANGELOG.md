@@ -1,3 +1,11 @@
+## v3.0.0
+
+- Dropped support for Ruby 3.1
+- Optimized search algorithm for better performance
+- Changed the interface: now use `grepfruit search` instead of just `grepfruit` to perform searches
+- Added JSON output format for search results
+- Added parallel processing and --jobs option to control worker count
+
 ## v2.0.4
 
 - Fixed path resolution bug where searching in relative directories such as `.`, `./`, or `..` did not work correctly
