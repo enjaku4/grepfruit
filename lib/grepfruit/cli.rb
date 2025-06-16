@@ -28,13 +28,19 @@ module Grepfruit
           exit 1
         end
 
+        jobs = options[:jobs]&.to_i
+        if jobs && jobs < 1
+          puts "Error: Number of jobs must be at least 1"
+          exit 1
+        end
+
         search_options = {
           dir: path,
           regex: regex,
           exclude: options[:exclude] || [],
-          truncate: options[:truncate]&.to_i,
+          truncate: options[:truncate].to_i,
           search_hidden: !!options[:search_hidden],
-          jobs: options[:jobs]&.to_i
+          jobs: jobs
         }
 
         Grepfruit::Search.new(**search_options).run
