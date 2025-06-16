@@ -122,20 +122,20 @@ RSpec.describe Grepfruit::Search do
 
   describe "error handling" do
     context "when no regex is specified" do
-      subject { `./exe/grepfruit search ./spec/test_dataset 2>&1` }
+      subject { `./exe/grepfruit search ./spec/test_dataset` }
 
       it { is_expected.to include("Error: You must specify a regex pattern using the -r or --regex option.") }
     end
 
     context "when invalid regex is specified" do
-      subject { `./exe/grepfruit search -r '[' ./spec/test_dataset 2>&1` }
+      subject { `./exe/grepfruit search -r '[' ./spec/test_dataset` }
 
       it { is_expected.to include("Error: Invalid regex pattern") }
       it { is_expected.to include("premature end of char-class") }
     end
 
     context "when invalid jobs count is specified" do
-      subject { `./exe/grepfruit search -r 'TODO' -j 0 ./spec/test_dataset 2>&1` }
+      subject { `./exe/grepfruit search -r 'TODO' -j 0 ./spec/test_dataset` }
 
       it { is_expected.to include("Error: Number of jobs must be at least 1") }
     end
@@ -201,7 +201,7 @@ RSpec.describe Grepfruit::Search do
       end
 
       it "exits with code 1 when matches are found" do
-        system("./exe/grepfruit search -r 'TODO' --json ./spec/test_dataset > /dev/null 2>&1")
+        system("./exe/grepfruit search -r 'TODO' --json ./spec/test_dataset > /dev/null")
         expect($?.exitstatus).to eq(1)
       end
     end
@@ -216,7 +216,7 @@ RSpec.describe Grepfruit::Search do
       end
 
       it "exits with code 0 when no matches are found" do
-        system("./exe/grepfruit search -r 'NONEXISTENT' --json ./spec/test_dataset > /dev/null 2>&1")
+        system("./exe/grepfruit search -r 'NONEXISTENT' --json ./spec/test_dataset > /dev/null")
         expect($?.exitstatus).to eq(0)
       end
     end
