@@ -26,7 +26,7 @@ module Grepfruit
       puts "Searching for #{regex.inspect} in #{dir.inspect}...\n\n" unless json_output
 
       all_lines, total_files_with_matches, total_files = [], 0, 0
-      raw_matches = [] # Store raw match data for JSON
+      raw_matches = []
       workers = create_workers
       file_enumerator = create_file_enumerator
       active_workers = {}
