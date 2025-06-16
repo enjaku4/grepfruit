@@ -4,6 +4,7 @@
 - Optimized search algorithm for better performance
 - Changed the interface: now use `grepfruit search` instead of just `grepfruit` to perform searches
 - Added JSON output format for search results
+- Added parallel processing and --jobs option to control worker count
 
 ## v2.0.4
 
