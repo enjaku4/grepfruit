@@ -149,4 +149,39 @@ RSpec.describe Grepfruit::Search do
 
     it { is_expected.not_to include(".hidden") }
   end
+
+  context "when no regex is specified" do
+    subject { `./exe/grepfruit search ./spec/test_dataset 2>&1` }
+
+    it { is_expected.to include("Error: You must specify a regex pattern using the -r or --regex option.") }
+  end
+
+  context "when invalid regex is specified" do
+    subject { `./exe/grepfruit search -r '[' ./spec/test_dataset 2>&1` }
+
+    it { is_expected.to include("Error: Invalid regex pattern") }
+    it { is_expected.to include("premature end of char-class") }
+  end
+
+  context "when invalid jobs count is specified" do
+    subject { `./exe/grepfruit search -r 'TODO' -j 0 ./spec/test_dataset 2>&1` }
+
+    it { is_expected.to include("Error: Number of jobs must be at least 1") }
+  end
+
+  context "when jobs flag is used with 1 worker" do
+    subject { `./exe/grepfruit search -r 'TODO' -j 1 ./spec/test_dataset` }
+
+    it { is_expected.to include("Searching for /TODO/ in") }
+    it { is_expected.to include("16 matches found") }
+    it { is_expected.to include("4 files checked") }
+  end
+
+  context "when jobs flag is used with multiple workers" do
+    subject { `./exe/grepfruit search -r 'TODO' -j 4 ./spec/test_dataset` }
+
+    it { is_expected.to include("Searching for /TODO/ in") }
+    it { is_expected.to include("16 matches found") }
+    it { is_expected.to include("4 files checked") }
+  end
 end
