@@ -1,4 +1,5 @@
 require "fileutils"
+require "json"
 
 RSpec.describe Grepfruit::Search do
   context "when no parameters are specified" do
@@ -162,6 +163,71 @@ RSpec.describe Grepfruit::Search do
 
       it { is_expected.to include("16 matches found") }
       it { is_expected.to include("4 files checked") }
+    end
+  end
+
+  describe "JSON output" do
+    context "when --json flag is used with matches found" do
+      subject { `./exe/grepfruit search -r 'TODO' --json ./spec/test_dataset` }
+
+      it "includes search metadata" do
+        json = JSON.parse(subject)
+        expect(json["search"]).to include(
+          "pattern" => "/TODO/",
+          "directory" => File.expand_path("./spec/test_dataset")
+        )
+        expect(json["search"]["timestamp"]).to match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
+      end
+
+      it "includes summary with correct counts" do
+        json = JSON.parse(subject)
+        expect(json["summary"]).to include(
+          "files_checked" => 4,
+          "files_with_matches" => 4,
+          "total_matches" => 16
+        )
+      end
+
+      it "includes matches with required fields" do
+        json = JSON.parse(subject)
+        expect(json["matches"]).to be_an(Array)
+        expect(json["matches"].size).to eq(16)
+
+        first_match = json["matches"].first
+        expect(first_match).to include("file", "line", "content")
+        expect(first_match["file"]).to be_a(String)
+        expect(first_match["line"]).to be_a(Integer)
+        expect(first_match["content"]).to be_a(String)
+      end
+
+      it "exits with code 1 when matches are found" do
+        system("./exe/grepfruit search -r 'TODO' --json ./spec/test_dataset > /dev/null 2>&1")
+        expect($?.exitstatus).to eq(1)
+      end
+    end
+
+    context "when --json flag is used with no matches" do
+      subject { `./exe/grepfruit search -r 'NONEXISTENT' --json ./spec/test_dataset` }
+
+      it "outputs valid JSON with empty matches" do
+        json = JSON.parse(subject)
+        expect(json["matches"]).to eq([])
+        expect(json["summary"]["total_matches"]).to eq(0)
+      end
+
+      it "exits with code 0 when no matches are found" do
+        system("./exe/grepfruit search -r 'NONEXISTENT' --json ./spec/test_dataset > /dev/null 2>&1")
+        expect($?.exitstatus).to eq(0)
+      end
+    end
+
+    context "when --json flag is used with exclusions" do
+      subject { `./exe/grepfruit search -r 'TODO' --json -e 'folder,bar.txt' ./spec/test_dataset` }
+
+      it "includes exclusions in search metadata" do
+        json = JSON.parse(subject)
+        expect(json["search"]["exclusions"]).to contain_exactly("folder", "bar.txt")
+      end
     end
   end
 

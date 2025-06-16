@@ -9,21 +9,24 @@ module Grepfruit
   class Search
     include Decorator
 
-    attr_reader :dir, :regex, :excluded_paths, :excluded_lines, :truncate, :search_hidden, :jobs
+    attr_reader :dir, :regex, :excluded_paths, :excluded_lines, :truncate, :search_hidden, :jobs, :json_output
 
-    def initialize(dir:, regex:, exclude:, truncate:, search_hidden:, jobs:)
+    def initialize(dir:, regex:, exclude:, truncate:, search_hidden:, jobs:, json_output: false)
       @dir = File.expand_path(dir)
       @regex = regex
       @excluded_lines, @excluded_paths = exclude.map { _1.split("/") }.partition { _1.last.include?(":") }
       @truncate = truncate
       @search_hidden = search_hidden
       @jobs = jobs || Etc.nprocessors
+      @json_output = json_output
+      @start_time = Time.now
     end
 
     def run
-      puts "Searching for #{regex.inspect} in #{dir.inspect}...\n\n"
+      puts "Searching for #{regex.inspect} in #{dir.inspect}...\n\n" unless json_output
 
       all_lines, total_files_with_matches, total_files = [], 0, 0
+      raw_matches = [] # Store raw match data for JSON
       workers = create_workers
       file_enumerator = create_file_enumerator
       active_workers = {}
@@ -41,7 +44,7 @@ module Grepfruit
         ready_worker, (file_results, has_matches) = Ractor.select(*active_workers.keys)
         active_workers.delete(ready_worker)
 
-        total_files_with_matches += 1 if process_worker_result(file_results, has_matches, all_lines)
+        total_files_with_matches += 1 if process_worker_result(file_results, has_matches, all_lines, raw_matches)
 
         next_file = get_next_file(file_enumerator)
         next unless next_file
@@ -52,7 +55,12 @@ module Grepfruit
       end
 
       workers.each(&:close_outgoing)
-      display_results(all_lines, total_files, total_files_with_matches)
+
+      if json_output
+        display_json_results(raw_matches, total_files, total_files_with_matches)
+      else
+        display_results(all_lines, total_files, total_files_with_matches)
+      end
     end
 
     private
@@ -101,16 +109,20 @@ module Grepfruit
       end
     end
 
-    def process_worker_result(file_results, has_matches, all_lines)
+    def process_worker_result(file_results, has_matches, all_lines, raw_matches)
       if has_matches
-        colored_lines = file_results.map do |relative_path, line_num, line_content|
-          "#{cyan("#{relative_path}:#{line_num}")}: #{processed_line(line_content)}"
+        raw_matches.concat(file_results) if json_output
+
+        unless json_output
+          colored_lines = file_results.map do |relative_path, line_num, line_content|
+            "#{cyan("#{relative_path}:#{line_num}")}: #{processed_line(line_content)}"
+          end
+          all_lines.concat(colored_lines)
+          print red("M")
         end
-        all_lines.concat(colored_lines)
-        print red("M")
         true
       else
-        print green(".")
+        print green(".") unless json_output
         false
       end
     end

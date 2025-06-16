@@ -14,6 +14,7 @@ module Grepfruit
       option :truncate, aliases: ["-t"], type: :integer, desc: "Truncate output to N characters"
       option :search_hidden, type: :boolean, default: false, desc: "Search hidden files and directories"
       option :jobs, aliases: ["-j"], type: :integer, desc: "Number of parallel workers (default: all CPU cores, use 1 for sequential)"
+      option :json, type: :boolean, default: false, desc: "Output results in JSON format"
 
       def call(path: ".", **options)
         validate_options!(options)
@@ -24,7 +25,8 @@ module Grepfruit
           exclude: options[:exclude] || [],
           truncate: options[:truncate]&.to_i,
           search_hidden: !!options[:search_hidden],
-          jobs: options[:jobs]&.to_i
+          jobs: options[:jobs]&.to_i,
+          json_output: !!options[:json]
         ).run
       end
 
