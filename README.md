@@ -140,7 +140,7 @@ This outputs a structured JSON response containing search metadata, summary stat
       "line": 15,
       "content": "// TODO: Implement error handling"
     },
-    ...
+    // ...
   ]
 }
 ```
