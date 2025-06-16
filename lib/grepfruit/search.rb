@@ -24,20 +24,14 @@ module Grepfruit
     def run
       puts "Searching for #{regex.inspect} in #{dir.inspect}...\n\n"
 
-      files = []
-
-      Find.find(dir) do |path|
-        Find.prune if excluded_path?(path)
-        files << path unless not_searchable?(path)
-      end
-
-      process_files(files)
+      process_files_streaming
     end
 
     private
 
-    def process_files(files)
-      all_lines, total_files_with_matches = [], 0
+    def process_files_streaming
+      all_lines, total_files_with_matches, total_files = [], 0, 0
+
       workers = Array.new(jobs) do
         Ractor.new do
           loop do
@@ -61,20 +55,29 @@ module Grepfruit
         end
       end
 
-      total_files = files.size
+      file_enumerator = Enumerator.new do |yielder|
+        Find.find(dir) do |path|
+          Find.prune if excluded_path?(path)
+          yielder << path unless not_searchable?(path)
+        end
+      end
+
       active_workers = {}
+      pending_files = 0
 
       workers.each do |worker|
-        break if files.empty?
-
-        file_path = files.shift
-        worker.send([file_path, regex, excluded_lines, dir])
-        active_workers[worker] = file_path
+        if (file_path = file_enumerator.next rescue nil)
+          worker.send([file_path, regex, excluded_lines, dir])
+          active_workers[worker] = file_path
+          pending_files += 1
+          total_files += 1
+        end
       end
 
       while active_workers.any?
         ready_worker, (file_results, has_matches) = Ractor.select(*active_workers.keys)
         active_workers.delete(ready_worker)
+        pending_files -= 1
 
         if has_matches
           colored_lines = file_results.map do |relative_path, line_num, line_content|
@@ -87,11 +90,12 @@ module Grepfruit
           print green(".")
         end
 
-        next if files.empty?
-
-        next_file = files.shift
-        ready_worker.send([next_file, regex, excluded_lines, dir])
-        active_workers[ready_worker] = next_file
+        if (next_file = file_enumerator.next rescue nil)
+          ready_worker.send([next_file, regex, excluded_lines, dir])
+          active_workers[ready_worker] = next_file
+          pending_files += 1
+          total_files += 1
+        end
       end
 
       workers.each(&:close_outgoing)
