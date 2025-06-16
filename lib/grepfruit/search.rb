@@ -44,11 +44,11 @@ module Grepfruit
         total_files_with_matches += 1 if process_worker_result(file_results, has_matches, all_lines)
 
         next_file = get_next_file(file_enumerator)
-        if next_file
-          ready_worker.send([next_file, regex, excluded_lines, dir])
-          active_workers[ready_worker] = next_file
-          total_files += 1
-        end
+        next unless next_file
+
+        ready_worker.send([next_file, regex, excluded_lines, dir])
+        active_workers[ready_worker] = next_file
+        total_files += 1
       end
 
       workers.each(&:close_outgoing)
@@ -88,18 +88,16 @@ module Grepfruit
 
     def create_file_enumerator
       Enumerator.new do |yielder|
-        begin
-          Find.find(dir) do |path|
-            Find.prune if excluded_path?(path)
+        Find.find(dir) do |path|
+          Find.prune if excluded_path?(path)
 
-            next unless File.file?(path)
+          next unless File.file?(path)
 
-            yielder << path
-          end
-        rescue Errno::ENOENT
-          puts "Error: Directory '#{dir}' does not exist."
-          exit 1
+          yielder << path
         end
+      rescue Errno::ENOENT
+        puts "Error: Directory '#{dir}' does not exist."
+        exit 1
       end
     end
 
@@ -123,6 +121,10 @@ module Grepfruit
 
     def excluded?(list, path)
       list.any? { path.split("/").last(_1.length) == _1 }
+    end
+
+    def relative_path(path)
+      path.delete_prefix("#{dir}/")
     end
   end
 end
