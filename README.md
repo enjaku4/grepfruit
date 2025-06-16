@@ -121,7 +121,7 @@ grepfruit search -r 'TODO' --json
 
 This outputs a structured JSON response containing search metadata, summary statistics, and detailed match information:
 
-```json
+```jsonc
 {
   "search": {
     "pattern": "/TODO/",
