@@ -7,7 +7,7 @@ RSpec.describe Grepfruit::Search do
     it { is_expected.to include("Commands:") }
   end
 
-  context "basic search functionality" do
+  describe "basic search functionality" do
     context "when path is specified" do
       subject { `./exe/grepfruit search -r 'TODO' ./spec/test_dataset` }
 
@@ -33,7 +33,7 @@ RSpec.describe Grepfruit::Search do
     end
   end
 
-  context "regex patterns and options" do
+  describe "regex patterns and options" do
     context "when complex regex is specified" do
       subject { `./exe/grepfruit search -r 'TODO|FIXME' ./spec/test_dataset` }
 
@@ -61,7 +61,7 @@ RSpec.describe Grepfruit::Search do
     end
   end
 
-  context "file filtering and exclusion" do
+  describe "file filtering and exclusion" do
     context "when files and directories are excluded" do
       subject { `./exe/grepfruit search -e 'folder,bar.txt' -r TODO ./spec/test_dataset` }
 
@@ -96,7 +96,7 @@ RSpec.describe Grepfruit::Search do
     end
   end
 
-  context "output formatting" do
+  describe "output formatting" do
     context "when single file with single match" do
       subject { `./exe/grepfruit search -r 'FIXME' ./spec/test_dataset/baz.py` }
 
@@ -119,7 +119,7 @@ RSpec.describe Grepfruit::Search do
     end
   end
 
-  context "error handling" do
+  describe "error handling" do
     context "when no regex is specified" do
       subject { `./exe/grepfruit search ./spec/test_dataset 2>&1` }
 
@@ -140,7 +140,7 @@ RSpec.describe Grepfruit::Search do
     end
   end
 
-  context "parallel processing" do
+  describe "parallel processing" do
     context "when jobs flag is used with 1 worker" do
       subject { `./exe/grepfruit search -r 'TODO' -j 1 ./spec/test_dataset` }
 
@@ -165,7 +165,7 @@ RSpec.describe Grepfruit::Search do
     end
   end
 
-  context "edge cases" do
+  describe "edge cases" do
     context "when searching non-existent directory" do
       subject { `./exe/grepfruit search -r 'TODO' ./nonexistent` }
 
