@@ -33,7 +33,7 @@ module Grepfruit
           regex: regex,
           exclude: options[:exclude] || [],
           truncate: options[:truncate]&.to_i,
-          search_hidden: options[:search_hidden] || false,
+          search_hidden: !!options[:search_hidden],
           jobs: options[:jobs]&.to_i
         }
 

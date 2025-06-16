@@ -24,69 +24,35 @@ module Grepfruit
     def run
       puts "Searching for #{regex.inspect} in #{dir.inspect}...\n\n"
 
-      files_to_search = collect_files
-
-      if jobs > 1
-        process_files_parallel(files_to_search)
-      else
-        process_files_sequential(files_to_search)
-      end
-    end
-
-    private
-
-    def collect_files
       files = []
+
       Find.find(dir) do |path|
         Find.prune if excluded_path?(path)
         files << path unless not_searchable?(path)
       end
-      files
+
+      process_files(files)
     end
 
-    def process_files_sequential(files_to_search)
-      lines, files_with_matches = [], 0
+    private
 
-      files_to_search.each do |path|
-        match = process_file(path, lines)
-
-        if match
-          files_with_matches += 1
-          print red("M")
-        else
-          print green(".")
-        end
-      end
-
-      display_results(lines, files_to_search.size, files_with_matches)
-    end
-
-    def process_files_parallel(files_to_search)
-      all_lines = []
-      total_files_with_matches = 0
-      files_processed = 0
-
-      workers = (1..jobs).map do |worker_id|
-        create_file_worker_ractor(worker_id)
-      end
-
-      file_queue = files_to_search.dup
+    def process_files(files)
+      all_lines, total_files_with_matches = [], 0
+      workers = Array.new(jobs) { create_file_worker_ractor }
+      total_files = files.size
       active_workers = {}
 
       workers.each do |worker|
-        next unless file_queue.any?
+        break if files.empty?
 
-        file_path = file_queue.shift
-        worker.send([file_path, regex, excluded_lines, truncate, dir])
+        file_path = files.shift
+        worker.send([file_path, regex, excluded_lines, dir])
         active_workers[worker] = file_path
       end
 
       while active_workers.any?
-        ready_worker, result = Ractor.select(*active_workers.keys)
+        ready_worker, (file_results, has_matches) = Ractor.select(*active_workers.keys)
         active_workers.delete(ready_worker)
-
-        file_results, has_matches = result
-        files_processed += 1
 
         if has_matches
           colored_lines = file_results.map do |relative_path, line_num, line_content|
@@ -99,29 +65,28 @@ module Grepfruit
           print green(".")
         end
 
-        next unless file_queue.any?
+        next if files.empty?
 
-        next_file = file_queue.shift
+        next_file = files.shift
         ready_worker.send([next_file, regex, excluded_lines, truncate, dir])
         active_workers[ready_worker] = next_file
       end
 
       workers.each(&:close_outgoing)
 
-      display_results(all_lines, files_to_search.size, total_files_with_matches)
+      display_results(all_lines, total_files, total_files_with_matches)
     end
 
-    def create_file_worker_ractor(_worker_id)
+    def create_file_worker_ractor
       Ractor.new do
         loop do
-          file_path, pattern, exc_lines, _, base_dir = Ractor.receive
+          file_path, pattern, exc_lines, base_dir = Ractor.receive
 
           results = []
           has_matches = false
 
           File.foreach(file_path).with_index do |line, line_num|
-            next unless line.valid_encoding?
-            next unless line.match?(pattern)
+            next unless line.valid_encoding? && line.match?(pattern)
 
             relative_path = file_path.delete_prefix("#{base_dir}/")
             next if exc_lines.any? { |exc| "#{relative_path}:#{line_num + 1}".end_with?(exc.join("/")) }
@@ -139,20 +104,8 @@ module Grepfruit
       File.directory?(path) || File.symlink?(path)
     end
 
-    def process_file(path, lines)
-      lines_size = lines.size
-
-      File.foreach(path).with_index do |line, line_num|
-        next if !line.valid_encoding? || !line.match?(regex) || excluded_line?(path, line_num)
-
-        lines << decorated_line(path, line_num, line)
-      end
-
-      lines.size > lines_size
-    end
-
     def excluded_path?(path)
-      excluded?(excluded_paths, relative_path(path)) || !search_hidden && hidden?(path)
+      excluded?(excluded_paths, relative_path(path)) || (!search_hidden && hidden?(path))
     end
 
     def excluded_line?(path, line_num)

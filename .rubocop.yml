@@ -46,6 +46,9 @@ RSpec/NamedSubject:
 Style/Documentation:
   Enabled: false
 
+Style/DoubleNegation:
+  Enabled: false
+
 Style/FrozenStringLiteralComment:
   Enabled: false
 
