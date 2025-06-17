@@ -111,15 +111,15 @@ Search hidden files and directories:
 grepfruit search -r 'FIXME|TODO' --search-hidden
 ```
 
-### JSON Output for Automation
+### JSON Output
 
-Get structured JSON output for scripts and CI/CD pipelines:
+Get structured JSON output:
 
 ```bash
 grepfruit search -r 'TODO' --json
 ```
 
-This outputs a structured JSON response containing search metadata, summary statistics, and detailed match information:
+This outputs a JSON response containing search metadata, summary statistics, and detailed match information:
 
 ```jsonc
 {
