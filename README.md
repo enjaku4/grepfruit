@@ -22,7 +22,7 @@ Grepfruit is a Ruby gem for searching files within a directory for specified reg
   - [Exit Status](#exit-status)
 
 **Community Resources:**
-  - [Contributing](#contributing)
+  - [Getting Help and Contributing](#getting-help-and-contributing)
   - [License](#license)
   - [Code of Conduct](#code-of-conduct)
 
@@ -161,7 +161,7 @@ Grepfruit returns meaningful exit codes for CI/CD integration:
 - **Exit code 0**: No matches found (ideal for quality gates - code is clean)
 - **Exit code 1**: Pattern matches were found (CI should fail - issues detected)
 
-## Contributing
+## Getting Help and Contributing
 
 ### Getting Help
 Have a question or need assistance? Open a discussion in our [discussions section](https://github.com/brownboxdev/grepfruit/discussions) for:
