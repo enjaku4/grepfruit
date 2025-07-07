@@ -132,7 +132,7 @@ module Grepfruit
     end
 
     def excluded?(list, path)
-      list.any? { path.split("/").last(_1.length) == _1 }
+      list.any? { File.fnmatch(_1.join('/'), path, File::FNM_PATHNAME) }
     end
 
     def relative_path(path)

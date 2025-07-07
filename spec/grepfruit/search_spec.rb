@@ -95,6 +95,56 @@ RSpec.describe Grepfruit::Search do
 
       it { is_expected.not_to include(".hidden") }
     end
+
+    context "when files are excluded using wildcard patterns" do
+      context "excluding Python files with *.py" do
+        subject { `./exe/grepfruit search -r 'TODO' -e '*.py' ./spec/test_dataset` }
+
+        it { is_expected.not_to include("baz.py") }
+        it { is_expected.to include("foo.md") }
+        it { is_expected.to include("bar.txt") }
+        it { is_expected.to include("3 files checked") }
+        it { is_expected.to include("12 matches found") }
+      end
+
+      context "using wildcard pattern that matches no files" do
+        subject { `./exe/grepfruit search -r 'TODO' -e '*.xyz' ./spec/test_dataset` }
+
+        it { is_expected.to include("4 files checked") }
+        it { is_expected.to include("16 matches found") }
+      end
+
+      context "mixing wildcard and exact exclusions" do
+        subject { `./exe/grepfruit search -r 'TODO' -e '*.py,folder' ./spec/test_dataset` }
+
+        it { is_expected.not_to include("baz.py") }
+        it { is_expected.not_to include("folder/") }
+        it { is_expected.to include("foo.md") }
+        it { is_expected.to include("bar.txt") }
+        it { is_expected.to include("2 files checked") }
+        it { is_expected.to include("11 matches found") }
+      end
+
+      context "using ? wildcard for single character matching" do
+        subject { `./exe/grepfruit search -r 'TODO' -e 'ba?.py' ./spec/test_dataset` }
+
+        it { is_expected.not_to include("baz.py") }
+        it { is_expected.to include("foo.md") }
+        it { is_expected.to include("bar.txt") }
+        it { is_expected.to include("3 files checked") }
+        it { is_expected.to include("12 matches found") }
+      end
+
+      context "using [] wildcard for character class matching" do
+        subject { `./exe/grepfruit search -r 'TODO' -e '[bf]*.txt' ./spec/test_dataset` }
+
+        it { is_expected.not_to include("bar.txt") }
+        it { is_expected.to include("baz.py") }
+        it { is_expected.to include("foo.md") }
+        it { is_expected.to include("3 files checked") }
+        it { is_expected.to include("13 matches found") }
+      end
+    end
   end
 
   describe "output formatting" do
