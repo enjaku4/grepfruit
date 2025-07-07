@@ -33,12 +33,7 @@ module Grepfruit
       active_workers = {}
 
       workers.each do |worker|
-        file_path = get_next_file(file_enumerator)
-        next unless file_path
-
-        worker.send([file_path, regex, excluded_lines, dir])
-        active_workers[worker] = file_path
-        total_files += 1
+        assign_file_to_worker(worker, file_enumerator, active_workers) && total_files += 1
       end
 
       while active_workers.any?
@@ -47,12 +42,7 @@ module Grepfruit
 
         total_files_with_matches += 1 if process_worker_result(file_results, has_matches, all_lines, raw_matches)
 
-        next_file = get_next_file(file_enumerator)
-        next unless next_file
-
-        ready_worker.send([next_file, regex, excluded_lines, dir])
-        active_workers[ready_worker] = next_file
-        total_files += 1
+        assign_file_to_worker(ready_worker, file_enumerator, active_workers) && total_files += 1
       end
 
       workers.each(&:close_outgoing)
@@ -65,6 +55,15 @@ module Grepfruit
     end
 
     private
+
+    def assign_file_to_worker(worker, file_enumerator, active_workers)
+      file_path = get_next_file(file_enumerator)
+      return false unless file_path
+
+      worker.send([file_path, regex, excluded_lines, dir])
+      active_workers[worker] = file_path
+      true
+    end
 
     def get_next_file(enumerator)
       enumerator.next
@@ -145,7 +144,7 @@ module Grepfruit
     def matches_pattern?(pattern_list, path)
       pattern_list.any? do
         pattern = _1.join('/')
-        File.fnmatch(pattern, path, File::FNM_PATHNAME) || File.fnmatch(pattern, File.basename(path))
+        File.fnmatch?(pattern, path, File::FNM_PATHNAME) || File.fnmatch?(pattern, File.basename(path))
       end
     end
 
