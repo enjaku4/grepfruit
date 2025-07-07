@@ -3,7 +3,7 @@
 [![Gem Version](https://badge.fury.io/rb/grepfruit.svg)](http://badge.fury.io/rb/grepfruit)
 [![Github Actions badge](https://github.com/brownboxdev/grepfruit/actions/workflows/ci.yml/badge.svg)](https://github.com/brownboxdev/grepfruit/actions/workflows/ci.yml)
 
-Grepfruit is a Ruby gem for searching files within a directory for specified regular expression patterns, with exclusion options and JSON-formatted or colorized output for enhanced readability. Originally designed for CI/CD pipelines to search for `TODO` comments in Ruby on Rails applications, Grepfruit provides more user-friendly output than the standard `grep` command while maintaining the flexibility for diverse search scenarios.
+Grepfruit is a Ruby gem for searching files within a directory for specified regular expression patterns, with exclusion and inclusion options and JSON-formatted or colorized output for enhanced readability. Originally designed for CI/CD pipelines to search for `TODO` comments in Ruby on Rails applications, Grepfruit provides more user-friendly output than the standard `grep` command while maintaining the flexibility for diverse search scenarios.
 
 **Key Features:**
 
@@ -56,6 +56,7 @@ If no PATH is specified, Grepfruit searches the current directory.
 |--------|-------------|
 | `-r, --regex REGEX` | Regex pattern to search for (required) |
 | `-e, --exclude x,y,z` | Comma-separated list of files, directories, or lines to exclude |
+| `-i, --include x,y,z` | Comma-separated list of file patterns to include (only these files will be searched) |
 | `-t, --truncate N` | Truncate search result output to N characters |
 | `-j, --jobs N` | Number of parallel workers (default: number of CPU cores) |
 | `--search-hidden` | Include hidden files and directories in search |
@@ -84,7 +85,7 @@ grepfruit search -r 'TODO' -e 'log,tmp,vendor,node_modules,assets'
 Search for both `FIXME` and `TODO` comments in a specific directory:
 
 ```bash
-grepfruit search -r 'FIXME|TODO' -e 'bin,tmp/log,Gemfile.lock' dev/my_app
+grepfruit search -r 'FIXME|TODO' -e 'bin,*.md,tmp/log,Gemfile.lock' dev/my_app
 ```
 
 ### Line-Specific Exclusion
@@ -93,6 +94,15 @@ Exclude specific lines from search results:
 
 ```bash
 grepfruit search -r 'FIXME|TODO' -e 'README.md:18'
+```
+
+### Including Specific File Types
+
+Search only in specific file types using patterns:
+
+```bash
+grepfruit search -r 'TODO' -i '*.rb,*.js'
+grepfruit search -r 'FIXME' -i '*.py'
 ```
 
 ### Output Truncation
@@ -116,7 +126,7 @@ grepfruit search -r 'FIXME|TODO' --search-hidden
 Get structured JSON output:
 
 ```bash
-grepfruit search -r 'TODO' --json
+grepfruit search -r 'TODO' -e 'node_modules' -i '*.rb,*.js' --json /path/to/search
 ```
 
 This outputs a JSON response containing search metadata, summary statistics, and detailed match information:
@@ -127,6 +137,7 @@ This outputs a JSON response containing search metadata, summary statistics, and
     "pattern": "/TODO/",
     "directory": "/path/to/search",
     "exclusions": ["node_modules"],
+    "inclusions": ["*.rb", "*.js"],
     "timestamp": "2025-01-16T10:30:00+00:00"
   },
   "summary": {

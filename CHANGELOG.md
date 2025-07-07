@@ -1,3 +1,8 @@
+## v3.1.0
+
+- Added --include option to specify files to include in the search
+- Both --exclude and --include options can now accept multiple patterns
+
 ## v3.0.0
 
 - Dropped support for Ruby 3.1

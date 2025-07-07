@@ -9,12 +9,13 @@ module Grepfruit
   class Search
     include Decorator
 
-    attr_reader :dir, :regex, :excluded_paths, :excluded_lines, :truncate, :search_hidden, :jobs, :json_output
+    attr_reader :dir, :regex, :excluded_paths, :excluded_lines, :included_paths, :truncate, :search_hidden, :jobs, :json_output
 
-    def initialize(dir:, regex:, exclude:, truncate:, search_hidden:, jobs:, json_output: false)
+    def initialize(dir:, regex:, exclude:, include:, truncate:, search_hidden:, jobs:, json_output: false)
       @dir = File.expand_path(dir)
       @regex = regex
       @excluded_lines, @excluded_paths = exclude.map { _1.split("/") }.partition { _1.last.include?(":") }
+      @included_paths = include.map { _1.split("/") }
       @truncate = truncate
       @search_hidden = search_hidden
       @jobs = jobs || Etc.nprocessors
@@ -32,12 +33,7 @@ module Grepfruit
       active_workers = {}
 
       workers.each do |worker|
-        file_path = get_next_file(file_enumerator)
-        next unless file_path
-
-        worker.send([file_path, regex, excluded_lines, dir])
-        active_workers[worker] = file_path
-        total_files += 1
+        assign_file_to_worker(worker, file_enumerator, active_workers) && total_files += 1
       end
 
       while active_workers.any?
@@ -46,12 +42,7 @@ module Grepfruit
 
         total_files_with_matches += 1 if process_worker_result(file_results, has_matches, all_lines, raw_matches)
 
-        next_file = get_next_file(file_enumerator)
-        next unless next_file
-
-        ready_worker.send([next_file, regex, excluded_lines, dir])
-        active_workers[ready_worker] = next_file
-        total_files += 1
+        assign_file_to_worker(ready_worker, file_enumerator, active_workers) && total_files += 1
       end
 
       workers.each(&:close_outgoing)
@@ -64,6 +55,15 @@ module Grepfruit
     end
 
     private
+
+    def assign_file_to_worker(worker, file_enumerator, active_workers)
+      file_path = get_next_file(file_enumerator)
+      return false unless file_path
+
+      worker.send([file_path, regex, excluded_lines, dir])
+      active_workers[worker] = file_path
+      true
+    end
 
     def get_next_file(enumerator)
       enumerator.next
@@ -82,7 +82,7 @@ module Grepfruit
               next unless line.valid_encoding? && line.match?(pattern)
 
               relative_path = file_path.delete_prefix("#{base_dir}/")
-              next if exc_lines.any? { |exc| "#{relative_path}:#{line_num + 1}".end_with?(exc.join("/")) }
+              next if exc_lines.any? { "#{relative_path}:#{line_num + 1}".end_with?(_1.join("/")) }
 
               results << [relative_path, line_num + 1, line]
               has_matches = true
@@ -128,11 +128,24 @@ module Grepfruit
     end
 
     def excluded_path?(path)
-      excluded?(excluded_paths, relative_path(path)) || (!search_hidden && File.basename(path).start_with?("."))
+      rel_path = relative_path(path)
+
+      not_included_path?(path, rel_path) || matches_pattern?(excluded_paths, rel_path) || excluded_hidden?(path)
     end
 
-    def excluded?(list, path)
-      list.any? { path.split("/").last(_1.length) == _1 }
+    def not_included_path?(path, rel_path)
+      File.file?(path) && included_paths.any? && !matches_pattern?(included_paths, rel_path)
+    end
+
+    def excluded_hidden?(path)
+      !search_hidden && File.basename(path).start_with?(".")
+    end
+
+    def matches_pattern?(pattern_list, path)
+      pattern_list.any? do |pattern_parts|
+        pattern = pattern_parts.join("/")
+        File.fnmatch?(pattern, path, File::FNM_PATHNAME) || File.fnmatch?(pattern, File.basename(path))
+      end
     end
 
     def relative_path(path)

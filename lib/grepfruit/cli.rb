@@ -11,6 +11,7 @@ module Grepfruit
 
       option :regex, aliases: ["-r"], required: true, desc: "Regex pattern to search for"
       option :exclude, aliases: ["-e"], type: :array, default: [], desc: "Comma-separated list of files and directories to exclude"
+      option :include, aliases: ["-i"], type: :array, default: [], desc: "Comma-separated list of file patterns to include (only these files will be searched)"
       option :truncate, aliases: ["-t"], type: :integer, desc: "Truncate output to N characters"
       option :search_hidden, type: :boolean, default: false, desc: "Search hidden files and directories"
       option :jobs, aliases: ["-j"], type: :integer, desc: "Number of parallel workers (default: all CPU cores, use 1 for sequential)"
@@ -23,6 +24,7 @@ module Grepfruit
           dir: path,
           regex: create_regex(options[:regex]),
           exclude: options[:exclude] || [],
+          include: options[:include] || [],
           truncate: options[:truncate]&.to_i,
           search_hidden: !!options[:search_hidden],
           jobs: options[:jobs]&.to_i,
