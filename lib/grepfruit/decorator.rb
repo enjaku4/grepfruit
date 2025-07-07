@@ -40,6 +40,7 @@ module Grepfruit
         pattern: regex.inspect,
         directory: dir,
         exclusions: (excluded_paths + excluded_lines).map { |path_parts| path_parts.join("/") },
+        inclusions: included_paths.map { |path_parts| path_parts.join("/") },
         timestamp: @start_time.strftime("%Y-%m-%dT%H:%M:%S%z")
       }
 

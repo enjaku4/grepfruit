@@ -144,6 +144,94 @@ RSpec.describe Grepfruit::Search do
         it { is_expected.to include("3 files checked") }
         it { is_expected.to include("13 matches found") }
       end
+
+      context "excluding by filename only (matching grep behavior)" do
+        subject { `./exe/grepfruit search -r 'TODO' -e 'bad.yml' ./spec/test_dataset` }
+
+        it { is_expected.not_to include("folder/bad.yml") }
+        it { is_expected.to include("baz.py") }
+        it { is_expected.to include("bar.txt") }
+        it { is_expected.to include("foo.md") }
+        it { is_expected.to include("3 files checked") }
+        it { is_expected.to include("15 matches found") }
+      end
+    end
+
+    context "when files are included using patterns" do
+      context "including only Python files with *.py" do
+        subject { `./exe/grepfruit search -r 'TODO' -i '*.py' ./spec/test_dataset` }
+
+        it { is_expected.to include("baz.py") }
+        it { is_expected.not_to include("foo.md") }
+        it { is_expected.not_to include("bar.txt") }
+        it { is_expected.not_to include("folder/bad.yml") }
+        it { is_expected.to include("1 file checked") }
+        it { is_expected.to include("4 matches found") }
+      end
+
+      context "including only text files with *.txt" do
+        subject { `./exe/grepfruit search -r 'TODO' -i '*.txt' ./spec/test_dataset` }
+
+        it { is_expected.to include("bar.txt") }
+        it { is_expected.not_to include("baz.py") }
+        it { is_expected.not_to include("foo.md") }
+        it { is_expected.not_to include("folder/bad.yml") }
+        it { is_expected.to include("1 file checked") }
+        it { is_expected.to include("3 matches found") }
+      end
+
+      context "including markdown files with *.md" do
+        subject { `./exe/grepfruit search -r 'TODO' -i '*.md' ./spec/test_dataset` }
+
+        it { is_expected.to include("foo.md") }
+        it { is_expected.not_to include("baz.py") }
+        it { is_expected.not_to include("bar.txt") }
+        it { is_expected.not_to include("folder/bad.yml") }
+        it { is_expected.to include("1 file checked") }
+        it { is_expected.to include("8 matches found") }
+      end
+
+      context "including multiple file types with *.py,*.txt" do
+        subject { `./exe/grepfruit search -r 'TODO' -i '*.py,*.txt' ./spec/test_dataset` }
+
+        it { is_expected.to include("baz.py") }
+        it { is_expected.to include("bar.txt") }
+        it { is_expected.not_to include("foo.md") }
+        it { is_expected.not_to include("folder/bad.yml") }
+        it { is_expected.to include("2 files checked") }
+        it { is_expected.to include("7 matches found") }
+      end
+
+      context "using wildcard pattern ba*.txt" do
+        subject { `./exe/grepfruit search -r 'TODO' -i 'ba*.txt' ./spec/test_dataset` }
+
+        it { is_expected.to include("bar.txt") }
+        it { is_expected.not_to include("baz.py") }
+        it { is_expected.not_to include("foo.md") }
+        it { is_expected.not_to include("folder/bad.yml") }
+        it { is_expected.to include("1 file checked") }
+        it { is_expected.to include("3 matches found") }
+      end
+
+      context "combining include and exclude patterns" do
+        subject { `./exe/grepfruit search -r 'TODO' -i '*.txt,*.py' -e 'ba*' ./spec/test_dataset` }
+
+        it { is_expected.not_to include("bar.txt") }
+        it { is_expected.not_to include("baz.py") }
+        it { is_expected.not_to include("foo.md") }
+        it { is_expected.not_to include("folder/bad.yml") }
+        it { is_expected.to include("0 files checked") }
+        it { is_expected.to include("no matches found") }
+      end
+
+      context "using full option name --include" do
+        subject { `./exe/grepfruit search --include '*.py' -r TODO ./spec/test_dataset` }
+
+        it { is_expected.to include("baz.py") }
+        it { is_expected.not_to include("bar.txt") }
+        it { is_expected.to include("1 file checked") }
+        it { is_expected.to include("4 matches found") }
+      end
     end
   end
 
@@ -277,6 +365,40 @@ RSpec.describe Grepfruit::Search do
       it "includes exclusions in search metadata" do
         json = JSON.parse(subject)
         expect(json["search"]["exclusions"]).to contain_exactly("folder", "bar.txt")
+      end
+    end
+
+    context "when --json flag is used with inclusions" do
+      subject { `./exe/grepfruit search -r 'TODO' --json -i '*.py,*.txt' ./spec/test_dataset` }
+
+      it "includes inclusions in search metadata" do
+        json = JSON.parse(subject)
+        expect(json["search"]["inclusions"]).to contain_exactly("*.py", "*.txt")
+      end
+
+      it "includes correct file counts" do
+        json = JSON.parse(subject)
+        expect(json["summary"]).to include(
+          "files_checked" => 2,
+          "files_with_matches" => 2,
+          "total_matches" => 7
+        )
+      end
+    end
+
+    context "when --json flag is used with both inclusions and exclusions" do
+      subject { `./exe/grepfruit search -r 'TODO' --json -i '*.py,*.txt' -e 'ba*' ./spec/test_dataset` }
+
+      it "includes both inclusions and exclusions in search metadata" do
+        json = JSON.parse(subject)
+        expect(json["search"]["inclusions"]).to contain_exactly("*.py", "*.txt")
+        expect(json["search"]["exclusions"]).to contain_exactly("ba*")
+      end
+
+      it "shows no matches when files are both included and excluded" do
+        json = JSON.parse(subject)
+        expect(json["summary"]["total_matches"]).to eq(0)
+        expect(json["matches"]).to eq([])
       end
     end
   end

@@ -9,12 +9,13 @@ module Grepfruit
   class Search
     include Decorator
 
-    attr_reader :dir, :regex, :excluded_paths, :excluded_lines, :truncate, :search_hidden, :jobs, :json_output
+    attr_reader :dir, :regex, :excluded_paths, :excluded_lines, :included_paths, :truncate, :search_hidden, :jobs, :json_output
 
-    def initialize(dir:, regex:, exclude:, truncate:, search_hidden:, jobs:, json_output: false)
+    def initialize(dir:, regex:, exclude:, include:, truncate:, search_hidden:, jobs:, json_output: false)
       @dir = File.expand_path(dir)
       @regex = regex
       @excluded_lines, @excluded_paths = exclude.map { _1.split("/") }.partition { _1.last.include?(":") }
+      @included_paths = include.map { _1.split("/") }
       @truncate = truncate
       @search_hidden = search_hidden
       @jobs = jobs || Etc.nprocessors
@@ -128,11 +129,32 @@ module Grepfruit
     end
 
     def excluded_path?(path)
-      excluded?(excluded_paths, relative_path(path)) || (!search_hidden && File.basename(path).start_with?("."))
+      rel_path = relative_path(path)
+
+      # If include patterns are specified, only include files that match at least one include pattern
+      # But don't apply include filters to directories - let them be traversed
+      if File.file?(path) && !included_paths.empty? && !included?(included_paths, rel_path)
+        return true
+      end
+
+      # Apply exclusion patterns
+      excluded?(excluded_paths, rel_path) || (!search_hidden && File.basename(path).start_with?("."))
     end
 
     def excluded?(list, path)
-      list.any? { File.fnmatch(_1.join('/'), path, File::FNM_PATHNAME) }
+      list.any? do |exclusion_parts|
+        exclusion_pattern = exclusion_parts.join('/')
+        File.fnmatch(exclusion_pattern, path, File::FNM_PATHNAME) ||
+        File.fnmatch(exclusion_pattern, File.basename(path))
+      end
+    end
+
+    def included?(list, path)
+      list.any? do |inclusion_parts|
+        inclusion_pattern = inclusion_parts.join('/')
+        File.fnmatch(inclusion_pattern, path, File::FNM_PATHNAME) ||
+        File.fnmatch(inclusion_pattern, File.basename(path))
+      end
     end
 
     def relative_path(path)
