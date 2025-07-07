@@ -1,7 +1,7 @@
 ## v3.1.0
 
 - Added --include option to specify files to include in the search
-- Both --exclude and --include options can now accept multiple patterns
+- Both --exclude and --include options can now accept wildcard patterns
 
 ## v3.0.0
 
