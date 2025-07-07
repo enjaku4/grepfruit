@@ -82,7 +82,7 @@ module Grepfruit
               next unless line.valid_encoding? && line.match?(pattern)
 
               relative_path = file_path.delete_prefix("#{base_dir}/")
-              next if exc_lines.any? { |exc| "#{relative_path}:#{line_num + 1}".end_with?(exc.join("/")) }
+              next if exc_lines.any? { "#{relative_path}:#{line_num + 1}".end_with?(_1.join("/")) }
 
               results << [relative_path, line_num + 1, line]
               has_matches = true
