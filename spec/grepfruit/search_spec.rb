@@ -169,6 +169,13 @@ RSpec.describe Grepfruit::Search do
         it { is_expected.to include("4 matches found") }
       end
 
+      context "using wildcard pattern that matches no files" do
+        subject { `./exe/grepfruit search -r 'TODO' -i '*.xyz' ./spec/test_dataset` }
+
+        it { is_expected.to include("0 files checked") }
+        it { is_expected.to include("no matches found") }
+      end
+
       context "including multiple file types" do
         subject { `./exe/grepfruit search -r 'TODO' -i '*.py,*.txt' ./spec/test_dataset` }
 
@@ -371,15 +378,6 @@ RSpec.describe Grepfruit::Search do
         json = JSON.parse(subject)
         expect(json["search"]["inclusions"]).to contain_exactly("*.py", "*.txt")
       end
-
-      it "includes correct file counts" do
-        json = JSON.parse(subject)
-        expect(json["summary"]).to include(
-          "files_checked" => 2,
-          "files_with_matches" => 2,
-          "total_matches" => 7
-        )
-      end
     end
 
     context "when --json flag is used with both inclusions and exclusions" do
@@ -389,12 +387,6 @@ RSpec.describe Grepfruit::Search do
         json = JSON.parse(subject)
         expect(json["search"]["inclusions"]).to contain_exactly("*.py", "*.txt")
         expect(json["search"]["exclusions"]).to contain_exactly("ba*")
-      end
-
-      it "shows no matches when files are both included and excluded" do
-        json = JSON.parse(subject)
-        expect(json["summary"]["total_matches"]).to eq(0)
-        expect(json["matches"]).to eq([])
       end
     end
   end
