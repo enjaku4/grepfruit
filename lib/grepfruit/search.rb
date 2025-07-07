@@ -131,29 +131,21 @@ module Grepfruit
     def excluded_path?(path)
       rel_path = relative_path(path)
 
-      # If include patterns are specified, only include files that match at least one include pattern
-      # But don't apply include filters to directories - let them be traversed
-      if File.file?(path) && !included_paths.empty? && !included?(included_paths, rel_path)
-        return true
-      end
-
-      # Apply exclusion patterns
-      excluded?(excluded_paths, rel_path) || (!search_hidden && File.basename(path).start_with?("."))
+      not_included_path?(path, rel_path) || matches_pattern?(excluded_paths, rel_path) || excluded_hidden?(path)
     end
 
-    def excluded?(list, path)
-      list.any? do |exclusion_parts|
-        exclusion_pattern = exclusion_parts.join('/')
-        File.fnmatch(exclusion_pattern, path, File::FNM_PATHNAME) ||
-        File.fnmatch(exclusion_pattern, File.basename(path))
-      end
+    def not_included_path?(path, rel_path)
+      File.file?(path) && included_paths.any? && !matches_pattern?(included_paths, rel_path)
     end
 
-    def included?(list, path)
-      list.any? do |inclusion_parts|
-        inclusion_pattern = inclusion_parts.join('/')
-        File.fnmatch(inclusion_pattern, path, File::FNM_PATHNAME) ||
-        File.fnmatch(inclusion_pattern, File.basename(path))
+    def excluded_hidden?(path)
+      !search_hidden && File.basename(path).start_with?(".")
+    end
+
+    def matches_pattern?(pattern_list, path)
+      pattern_list.any? do
+        pattern = _1.join('/')
+        File.fnmatch(pattern, path, File::FNM_PATHNAME) || File.fnmatch(pattern, File.basename(path))
       end
     end
 
