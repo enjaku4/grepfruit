@@ -142,8 +142,8 @@ module Grepfruit
     end
 
     def matches_pattern?(pattern_list, path)
-      pattern_list.any? do
-        pattern = _1.join('/')
+      pattern_list.any? do |pattern_parts|
+        pattern = pattern_parts.join("/")
         File.fnmatch?(pattern, path, File::FNM_PATHNAME) || File.fnmatch?(pattern, File.basename(path))
       end
     end
