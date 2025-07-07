@@ -97,7 +97,7 @@ RSpec.describe Grepfruit::Search do
     end
 
     context "when files are excluded using wildcard patterns" do
-      context "excluding Python files with *.py" do
+      context "excluding files by extension" do
         subject { `./exe/grepfruit search -r 'TODO' -e '*.py' ./spec/test_dataset` }
 
         it { is_expected.not_to include("baz.py") }
@@ -145,7 +145,7 @@ RSpec.describe Grepfruit::Search do
         it { is_expected.to include("13 matches found") }
       end
 
-      context "excluding by filename only (matching grep behavior)" do
+      context "excluding by filename only" do
         subject { `./exe/grepfruit search -r 'TODO' -e 'bad.yml' ./spec/test_dataset` }
 
         it { is_expected.not_to include("folder/bad.yml") }
@@ -158,7 +158,7 @@ RSpec.describe Grepfruit::Search do
     end
 
     context "when files are included using patterns" do
-      context "including only Python files with *.py" do
+      context "including files by extension" do
         subject { `./exe/grepfruit search -r 'TODO' -i '*.py' ./spec/test_dataset` }
 
         it { is_expected.to include("baz.py") }
@@ -169,29 +169,7 @@ RSpec.describe Grepfruit::Search do
         it { is_expected.to include("4 matches found") }
       end
 
-      context "including only text files with *.txt" do
-        subject { `./exe/grepfruit search -r 'TODO' -i '*.txt' ./spec/test_dataset` }
-
-        it { is_expected.to include("bar.txt") }
-        it { is_expected.not_to include("baz.py") }
-        it { is_expected.not_to include("foo.md") }
-        it { is_expected.not_to include("folder/bad.yml") }
-        it { is_expected.to include("1 file checked") }
-        it { is_expected.to include("3 matches found") }
-      end
-
-      context "including markdown files with *.md" do
-        subject { `./exe/grepfruit search -r 'TODO' -i '*.md' ./spec/test_dataset` }
-
-        it { is_expected.to include("foo.md") }
-        it { is_expected.not_to include("baz.py") }
-        it { is_expected.not_to include("bar.txt") }
-        it { is_expected.not_to include("folder/bad.yml") }
-        it { is_expected.to include("1 file checked") }
-        it { is_expected.to include("8 matches found") }
-      end
-
-      context "including multiple file types with *.py,*.txt" do
+      context "including multiple file types" do
         subject { `./exe/grepfruit search -r 'TODO' -i '*.py,*.txt' ./spec/test_dataset` }
 
         it { is_expected.to include("baz.py") }
@@ -231,6 +209,24 @@ RSpec.describe Grepfruit::Search do
         it { is_expected.not_to include("bar.txt") }
         it { is_expected.to include("1 file checked") }
         it { is_expected.to include("4 matches found") }
+      end
+
+      context "using ? wildcard for single character matching" do
+        subject { `./exe/grepfruit search -r 'TODO' -i 'ba?.py' ./spec/test_dataset` }
+
+        it { is_expected.to include("baz.py") }
+        it { is_expected.not_to include("bar.txt") }
+        it { is_expected.to include("1 file checked") }
+        it { is_expected.to include("4 matches found") }
+      end
+
+      context "using [] wildcard for character class matching" do
+        subject { `./exe/grepfruit search -r 'TODO' -i '[bf]*.txt' ./spec/test_dataset` }
+
+        it { is_expected.to include("bar.txt") }
+        it { is_expected.not_to include("baz.py") }
+        it { is_expected.to include("1 file checked") }
+        it { is_expected.to include("3 matches found") }
       end
     end
   end
