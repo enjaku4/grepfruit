@@ -4,9 +4,10 @@ module Grepfruit
 
     private
 
-    def green(text) = "#{COLORS[:green]}#{text}#{COLORS[:reset]}"
-    def red(text) = "#{COLORS[:red]}#{text}#{COLORS[:reset]}"
-    def cyan(text) = "#{COLORS[:cyan]}#{text}#{COLORS[:reset]}"
+    def colorize(text, color) = "#{COLORS[color]}#{text}#{COLORS[:reset]}"
+    def green(text) = colorize(text, :green)
+    def red(text) = colorize(text, :red)
+    def cyan(text) = colorize(text, :cyan)
 
     def number_of_files(num) = "#{num} file#{'s' if num != 1}"
     def number_of_matches(num) = "#{num} match#{'es' if num != 1}"
@@ -16,8 +17,8 @@ module Grepfruit
     end
 
     def processed_line(line)
-      stripped_line = line.strip
-      truncate && stripped_line.length > truncate ? "#{stripped_line[0...truncate]}..." : stripped_line
+      stripped = line.strip
+      truncate && stripped.length > truncate ? "#{stripped[0...truncate]}..." : stripped
     end
 
     def display_results(lines, files, files_with_matches)
@@ -41,7 +42,7 @@ module Grepfruit
         directory: dir,
         exclusions: (excluded_paths + excluded_lines).map { |path_parts| path_parts.join("/") },
         inclusions: included_paths.map { |path_parts| path_parts.join("/") },
-        timestamp: @start_time.strftime("%Y-%m-%dT%H:%M:%S%z")
+        timestamp: Time.now.strftime("%Y-%m-%dT%H:%M:%S%z")
       }
 
       summary = {

@@ -26,9 +26,9 @@ module Grepfruit
           exclude: options[:exclude] || [],
           include: options[:include] || [],
           truncate: options[:truncate]&.to_i,
-          search_hidden: !!options[:search_hidden],
+          search_hidden: options[:search_hidden],
           jobs: options[:jobs]&.to_i,
-          json_output: !!options[:json]
+          json_output: options[:json]
         ).run
       end
 
@@ -36,9 +36,7 @@ module Grepfruit
 
       def validate_options!(options)
         error_exit("You must specify a regex pattern using the -r or --regex option.") unless options[:regex]
-
-        jobs = options[:jobs]&.to_i
-        error_exit("Number of jobs must be at least 1") if jobs && jobs < 1
+        error_exit("Number of jobs must be at least 1") if (jobs = options[:jobs]&.to_i) && jobs < 1
       end
 
       def create_regex(pattern)

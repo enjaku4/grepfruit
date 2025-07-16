@@ -1,8 +1,6 @@
 require "find"
 require "etc"
 
-require_relative "decorator"
-
 Warning[:experimental] = false
 
 module Grepfruit
@@ -20,49 +18,77 @@ module Grepfruit
       @search_hidden = search_hidden
       @jobs = jobs || Etc.nprocessors
       @json_output = json_output
-      @start_time = Time.now
     end
 
     def run
       puts "Searching for #{regex.inspect} in #{dir.inspect}...\n\n" unless json_output
 
-      all_lines, total_files_with_matches, total_files = [], 0, 0
-      raw_matches = []
-      workers = create_workers
-      file_enumerator = create_file_enumerator
-      active_workers = {}
-
-      workers.each do |worker|
-        assign_file_to_worker(worker, file_enumerator, active_workers) && total_files += 1
-      end
-
-      while active_workers.any?
-        ready_worker, (file_results, has_matches) = Ractor.select(*active_workers.keys)
-        active_workers.delete(ready_worker)
-
-        total_files_with_matches += 1 if process_worker_result(file_results, has_matches, all_lines, raw_matches)
-
-        assign_file_to_worker(ready_worker, file_enumerator, active_workers) && total_files += 1
-      end
-
-      workers.each(&:close_outgoing)
-
-      if json_output
-        display_json_results(raw_matches, total_files, total_files_with_matches)
-      else
-        display_results(all_lines, total_files, total_files_with_matches)
-      end
+      display_final_results(execute_search)
     end
 
     private
 
-    def assign_file_to_worker(worker, file_enumerator, active_workers)
+    def execute_search
+      results = SearchResults.new
+      workers = Array.new(jobs) { create_persistent_worker }
+      file_enumerator = create_file_enumerator
+      active_workers = {}
+
+      workers.each do |worker|
+        assign_file_to_worker(worker, file_enumerator, active_workers, results)
+      end
+
+      while active_workers.any?
+        ready_worker, worker_result = Ractor.select(*active_workers.keys)
+        active_workers.delete(ready_worker)
+
+        results.increment_files_with_matches if process_worker_result(worker_result, results)
+        assign_file_to_worker(ready_worker, file_enumerator, active_workers, results)
+      end
+
+      shutdown_workers(workers)
+      results
+    end
+
+    def display_final_results(results)
+      if json_output
+        display_json_results(results.raw_matches, results.total_files, results.total_files_with_matches)
+      else
+        display_results(results.all_lines, results.total_files, results.total_files_with_matches)
+      end
+    end
+
+    def create_persistent_worker
+      Ractor.new do
+        loop do
+          work = Ractor.receive
+          break if work == :quit
+
+          file_path, pattern, exc_lines, base_dir = work
+          file_results, has_matches = [], false
+
+          File.foreach(file_path).with_index do |line, line_num|
+            next unless line.valid_encoding? && line.match?(pattern)
+
+            relative_path = file_path.delete_prefix("#{base_dir}/")
+            next if exc_lines.any? { "#{relative_path}:#{line_num + 1}".end_with?(_1.join("/")) }
+
+            file_results << [relative_path, line_num + 1, line]
+            has_matches = true
+          end
+
+          Ractor.yield([file_results, has_matches])
+        end
+      end
+    end
+
+    def assign_file_to_worker(worker, file_enumerator, active_workers, results)
       file_path = get_next_file(file_enumerator)
-      return false unless file_path
+      return unless file_path
 
       worker.send([file_path, regex, excluded_lines, dir])
       active_workers[worker] = file_path
-      true
+      results.total_files += 1
     end
 
     def get_next_file(enumerator)
@@ -71,27 +97,9 @@ module Grepfruit
       nil
     end
 
-    def create_workers
-      Array.new(jobs) do
-        Ractor.new do
-          loop do
-            file_path, pattern, exc_lines, base_dir = Ractor.receive
-            results, has_matches = [], false
-
-            File.foreach(file_path).with_index do |line, line_num|
-              next unless line.valid_encoding? && line.match?(pattern)
-
-              relative_path = file_path.delete_prefix("#{base_dir}/")
-              next if exc_lines.any? { "#{relative_path}:#{line_num + 1}".end_with?(_1.join("/")) }
-
-              results << [relative_path, line_num + 1, line]
-              has_matches = true
-            end
-
-            Ractor.yield([results, has_matches])
-          end
-        end
-      end
+    def shutdown_workers(workers)
+      workers.each { |worker| worker.send(:quit) }
+      workers.each(&:close_outgoing)
     end
 
     def create_file_enumerator
@@ -109,36 +117,32 @@ module Grepfruit
       end
     end
 
-    def process_worker_result(file_results, has_matches, all_lines, raw_matches)
+    def process_worker_result(worker_result, results)
+      file_results, has_matches = worker_result
+
       if has_matches
-        raw_matches.concat(file_results) if json_output
+        results.add_raw_matches(file_results) if json_output
 
         unless json_output
           colored_lines = file_results.map do |relative_path, line_num, line_content|
             "#{cyan("#{relative_path}:#{line_num}")}: #{processed_line(line_content)}"
           end
-          all_lines.concat(colored_lines)
+          results.add_lines(colored_lines)
           print red("M")
         end
-        true
       else
         print green(".") unless json_output
-        false
       end
+
+      has_matches
     end
 
     def excluded_path?(path)
-      rel_path = relative_path(path)
+      rel_path = path.delete_prefix("#{dir}/")
 
-      not_included_path?(path, rel_path) || matches_pattern?(excluded_paths, rel_path) || excluded_hidden?(path)
-    end
-
-    def not_included_path?(path, rel_path)
-      File.file?(path) && included_paths.any? && !matches_pattern?(included_paths, rel_path)
-    end
-
-    def excluded_hidden?(path)
-      !search_hidden && File.basename(path).start_with?(".")
+      (File.file?(path) && included_paths.any? && !matches_pattern?(included_paths, rel_path)) ||
+        matches_pattern?(excluded_paths, rel_path) ||
+        (!search_hidden && File.basename(path).start_with?("."))
     end
 
     def matches_pattern?(pattern_list, path)
@@ -146,10 +150,6 @@ module Grepfruit
         pattern = pattern_parts.join("/")
         File.fnmatch?(pattern, path, File::FNM_PATHNAME) || File.fnmatch?(pattern, File.basename(path))
       end
-    end
-
-    def relative_path(path)
-      path.delete_prefix("#{dir}/")
     end
   end
 end
