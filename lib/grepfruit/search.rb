@@ -32,11 +32,21 @@ module Grepfruit
       results = SearchResults.new
       workers = Array.new(jobs) { create_persistent_worker }
       file_enumerator = create_file_enumerator
+      active_workers = {}
 
-      batches_sent = send_work_to_workers(workers, file_enumerator, results)
-      collect_results_from_workers(workers, results, batches_sent)
+      workers.each do |worker|
+        assign_file_to_worker(worker, file_enumerator, active_workers, results)
+      end
+
+      while active_workers.any?
+        ready_worker, worker_result = Ractor.select(*active_workers.keys)
+        active_workers.delete(ready_worker)
+
+        results.increment_files_with_matches if process_worker_result(worker_result, results)
+        assign_file_to_worker(ready_worker, file_enumerator, active_workers, results)
+      end
+
       shutdown_workers(workers)
-
       results
     end
 
@@ -54,56 +64,37 @@ module Grepfruit
           work = Ractor.receive
           break if work == :quit
 
-          file_batch, pattern, exc_lines, base_dir = work
-          batch_results = []
+          file_path, pattern, exc_lines, base_dir = work
+          file_results, has_matches = [], false
 
-          file_batch.each do |file_path|
-            file_results, has_matches = [], false
+          File.foreach(file_path).with_index do |line, line_num|
+            next unless line.valid_encoding? && line.match?(pattern)
 
-            File.foreach(file_path).with_index do |line, line_num|
-              next unless line.valid_encoding? && line.match?(pattern)
+            relative_path = file_path.delete_prefix("#{base_dir}/")
+            next if exc_lines.any? { "#{relative_path}:#{line_num + 1}".end_with?(_1.join("/")) }
 
-              relative_path = file_path.delete_prefix("#{base_dir}/")
-              next if exc_lines.any? { "#{relative_path}:#{line_num + 1}".end_with?(_1.join("/")) }
-
-              file_results << [relative_path, line_num + 1, line]
-              has_matches = true
-            end
-
-            batch_results << [file_results, has_matches]
+            file_results << [relative_path, line_num + 1, line]
+            has_matches = true
           end
 
-          Ractor.yield(batch_results)
+          Ractor.yield([file_results, has_matches])
         end
       end
     end
 
-    def send_work_to_workers(workers, file_enumerator, results)
-      batches_sent = 0
-      total_files = 0
+    def assign_file_to_worker(worker, file_enumerator, active_workers, results)
+      file_path = get_next_file(file_enumerator)
+      return unless file_path
 
-      file_enumerator.each_slice(500).with_index do |batch, index|
-        total_files += batch.size
-        workers[index % workers.length].send([batch, regex, excluded_lines, dir])
-        batches_sent += 1
-      end
-
-      results.total_files = total_files
-      batches_sent
+      worker.send([file_path, regex, excluded_lines, dir])
+      active_workers[worker] = file_path
+      results.total_files += 1
     end
 
-    def collect_results_from_workers(workers, results, batches_expected)
-      batches_received = 0
-
-      while batches_received < batches_expected
-        _, batch_results = Ractor.select(*workers)
-
-        batch_results.each do |file_result|
-          results.increment_files_with_matches if process_worker_result(file_result, results)
-        end
-
-        batches_received += 1
-      end
+    def get_next_file(enumerator)
+      enumerator.next
+    rescue StopIteration
+      nil
     end
 
     def shutdown_workers(workers)
