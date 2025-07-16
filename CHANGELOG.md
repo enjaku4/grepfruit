@@ -1,3 +1,8 @@
+## v3.1.1
+
+- Fixed JSON timestamp to reflect result generation time
+- Minor optimization
+
 ## v3.1.0
 
 - Added --include option to specify files to include in the search
