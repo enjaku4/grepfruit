@@ -13,9 +13,9 @@ module Grepfruit
       option :exclude, aliases: ["-e"], type: :array, default: [], desc: "Comma-separated list of files and directories to exclude"
       option :include, aliases: ["-i"], type: :array, default: [], desc: "Comma-separated list of file patterns to include (only these files will be searched)"
       option :truncate, aliases: ["-t"], type: :integer, desc: "Truncate output to N characters"
-      option :search_hidden, type: :boolean, default: false, desc: "Search hidden files and directories"
+      option :search_hidden, type: :flag, default: false, desc: "Search hidden files and directories"
       option :jobs, aliases: ["-j"], type: :integer, desc: "Number of parallel workers (default: all CPU cores, use 1 for sequential)"
-      option :json, type: :boolean, default: false, desc: "Output results in JSON format"
+      option :json, type: :flag, default: false, desc: "Output results in JSON format"
 
       def call(path: ".", **options)
         validate_options!(options)
