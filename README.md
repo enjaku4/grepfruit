@@ -1,4 +1,4 @@
-# Grepfruit: File Pattern Search Tool for Ruby
+# Grepfruit: Enhanced File Pattern Search Tool
 
 [![Gem Version](https://badge.fury.io/rb/grepfruit.svg)](http://badge.fury.io/rb/grepfruit)
 [![Github Actions badge](https://github.com/brownboxdev/grepfruit/actions/workflows/ci.yml/badge.svg)](https://github.com/brownboxdev/grepfruit/actions/workflows/ci.yml)

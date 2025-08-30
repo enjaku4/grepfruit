@@ -1,3 +1,8 @@
+## v3.1.2
+
+- Corrected usage of `dry-cli` gem for flag handling
+- Relaxed dependency versions
+
 ## v3.1.1
 
 - Fixed JSON timestamp to reflect result generation time

@@ -3,6 +3,7 @@ source "https://rubygems.org"
 gemspec
 
 gem "byebug"
+gem "dry-cli"
 gem "rake"
 gem "rspec"
 gem "rubocop"
