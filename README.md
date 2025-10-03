@@ -1,7 +1,7 @@
 # Grepfruit: Enhanced File Pattern Search Tool
 
 [![Gem Version](https://badge.fury.io/rb/grepfruit.svg)](http://badge.fury.io/rb/grepfruit)
-[![Github Actions badge](https://github.com/brownboxdev/grepfruit/actions/workflows/ci.yml/badge.svg)](https://github.com/brownboxdev/grepfruit/actions/workflows/ci.yml)
+[![Github Actions badge](https://github.com/enjaku4/grepfruit/actions/workflows/ci.yml/badge.svg)](https://github.com/enjaku4/grepfruit/actions/workflows/ci.yml)
 
 Grepfruit is a Ruby gem for searching files within a directory for specified regular expression patterns, with exclusion and inclusion options and JSON-formatted or colorized output for enhanced readability. Originally designed for CI/CD pipelines to search for `TODO` comments in Ruby on Rails applications, Grepfruit provides more user-friendly output than the standard `grep` command while maintaining the flexibility for diverse search scenarios.
 
@@ -175,13 +175,13 @@ Grepfruit returns meaningful exit codes for CI/CD integration:
 ## Getting Help and Contributing
 
 ### Getting Help
-Have a question or need assistance? Open a discussion in our [discussions section](https://github.com/brownboxdev/grepfruit/discussions) for:
+Have a question or need assistance? Open a discussion in our [discussions section](https://github.com/enjaku4/grepfruit/discussions) for:
 - Usage questions
 - Implementation guidance
 - Feature suggestions
 
 ### Reporting Issues
-Found a bug? Please [create an issue](https://github.com/brownboxdev/grepfruit/issues) with:
+Found a bug? Please [create an issue](https://github.com/enjaku4/grepfruit/issues) with:
 - A clear description of the problem
 - Steps to reproduce the issue
 - Your environment details (Ruby version, OS, etc.)
@@ -190,14 +190,14 @@ Found a bug? Please [create an issue](https://github.com/brownboxdev/grepfruit/i
 Ready to contribute? You can:
 - Fix bugs by submitting pull requests
 - Improve documentation
-- Add new features (please discuss first in our [discussions section](https://github.com/brownboxdev/grepfruit/discussions))
+- Add new features (please discuss first in our [discussions section](https://github.com/enjaku4/grepfruit/discussions))
 
-Before contributing, please read the [contributing guidelines](https://github.com/brownboxdev/grepfruit/blob/master/CONTRIBUTING.md)
+Before contributing, please read the [contributing guidelines](https://github.com/enjaku4/grepfruit/blob/master/CONTRIBUTING.md)
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](https://github.com/brownboxdev/grepfruit/blob/master/LICENSE.txt).
+The gem is available as open source under the terms of the [MIT License](https://github.com/enjaku4/grepfruit/blob/master/LICENSE.txt).
 
 ## Code of Conduct
 
-Everyone interacting in the Grepfruit project is expected to follow the [code of conduct](https://github.com/brownboxdev/grepfruit/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the Grepfruit project is expected to follow the [code of conduct](https://github.com/enjaku4/grepfruit/blob/master/CODE_OF_CONDUCT.md).
