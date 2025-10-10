@@ -1,15 +1,18 @@
 # Grepfruit: Enhanced File Pattern Search Tool
 
 [![Gem Version](https://badge.fury.io/rb/grepfruit.svg)](http://badge.fury.io/rb/grepfruit)
+[![Downloads](https://img.shields.io/gem/dt/grepfruit.svg)](https://rubygems.org/gems/grepfruit)
 [![Github Actions badge](https://github.com/enjaku4/grepfruit/actions/workflows/ci.yml/badge.svg)](https://github.com/enjaku4/grepfruit/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/enjaku4/grepfruit.svg)](LICENSE)
 
-Grepfruit is a Ruby gem for searching files within a directory for specified regular expression patterns, with exclusion and inclusion options and JSON-formatted or colorized output for enhanced readability. Originally designed for CI/CD pipelines to search for `TODO` comments in Ruby on Rails applications, Grepfruit provides more user-friendly output than the standard `grep` command while maintaining the flexibility for diverse search scenarios.
+Grepfruit is a Ruby gem for searching files within a directory for specified regular expression patterns. It provides exclusion and inclusion options with JSON-formatted or colorized output for enhanced readability.
+
+Originally designed for CI/CD pipelines to search for `TODO` comments in Ruby applications, Grepfruit offers more user-friendly output than the standard `grep` command while maintaining flexibility for diverse search scenarios.
 
 **Key Features:**
 
-- Parallel search using Ractors
-- JSON output format for programmatic integration
 - Colorized output for improved readability
+- JSON output format for programmatic integration
 - CI/CD pipeline friendly exit codes
 
 ## Table of Contents
