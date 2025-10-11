@@ -99,7 +99,6 @@ module Grepfruit
 
     def shutdown_workers(workers)
       workers.each { |worker| worker.send(:quit) }
-      workers.each(&:close_outgoing)
     end
 
     def create_file_enumerator

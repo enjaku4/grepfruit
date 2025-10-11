@@ -1,3 +1,7 @@
+## v3.1.3
+
+- Fixed race condition in worker shutdown
+
 ## v3.1.2
 
 - Corrected usage of `dry-cli` gem for flag handling
