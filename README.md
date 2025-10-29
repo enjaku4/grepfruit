@@ -5,7 +5,7 @@
 [![Github Actions badge](https://github.com/enjaku4/grepfruit/actions/workflows/ci.yml/badge.svg)](https://github.com/enjaku4/grepfruit/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/enjaku4/grepfruit.svg)](LICENSE)
 
-Grepfruit is a Ruby gem for searching files within a directory for specified regular expression patterns. It provides exclusion and inclusion options with JSON-formatted or colorized output for enhanced readability. Originally designed for CI/CD pipelines to search for `TODO` comments in Ruby applications, Grepfruit offers more user-friendly output than the standard `grep` command while maintaining flexibility for diverse search scenarios.
+Grepfruit is a Ruby gem for searching files within a directory for specified regular expression patterns. Unlike the standard `grep` command, Grepfruit returns colorized text results for better readability as well as JSON formatted output.
 
 <img width="933" height="221" alt="Screenshot 2025-10-15 at 13 28 06" src="https://github.com/user-attachments/assets/cad09b17-9b79-4377-8cf9-365108a96a5a" />
 <img width="709" height="586" alt="Screenshot 2025-10-15 at 13 29 01" src="https://github.com/user-attachments/assets/36664522-1eee-40bf-8f58-a2503668e1a4" />
@@ -28,7 +28,7 @@ Grepfruit is a Ruby gem for searching files within a directory for specified reg
 
 Install the gem:
 
-```bash
+```shell
 gem install grepfruit
 ```
 
