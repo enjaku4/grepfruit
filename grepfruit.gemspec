@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
   spec.metadata["documentation_uri"] = "#{spec.homepage}/blob/master/README.md"
   spec.metadata["rubygems_mfa_required"] = "true"
   spec.summary = "A Ruby gem for searching text patterns in files"
-  spec.description = "Grepfruit provides enhanced file pattern search with colorized results, JSON output, and CI/CD integration"
+  spec.description = "User-friendly alternative to grep with colorized text or JSON output"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.2", "< 3.5"
 
