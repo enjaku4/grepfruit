@@ -12,8 +12,8 @@ Gem::Specification.new do |spec|
   spec.metadata["bug_tracker_uri"] = "#{spec.homepage}/issues"
   spec.metadata["documentation_uri"] = "#{spec.homepage}/blob/master/README.md"
   spec.metadata["rubygems_mfa_required"] = "true"
-  spec.summary = "A Ruby gem for searching text patterns in files"
-  spec.description = "User-friendly alternative to grep with colorized text or JSON output"
+  spec.summary = "Text pattern search tool with CI-friendly exit codes"
+  spec.description = "A pattern search tool with CI-friendly exit codes and colorized or JSON formatted output"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.2", "< 3.5"
 
