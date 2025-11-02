@@ -5,7 +5,7 @@
 [![Github Actions badge](https://github.com/enjaku4/grepfruit/actions/workflows/ci.yml/badge.svg)](https://github.com/enjaku4/grepfruit/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/enjaku4/grepfruit.svg)](LICENSE)
 
-Grepfruit is a Ruby gem for searching files for regular expression patterns with CI-friendly exit codes. It returns colorized text results for better readability or JSON formatted output for automation.
+Grepfruit is a pattern search tool designed for CI/CD pipelines with exit codes that signal failure when matches are found. It provides colorized output for readability or JSON format for automation.
 
 <img width="933" height="221" alt="Screenshot 2025-10-15 at 13 28 06" src="https://github.com/user-attachments/assets/cad09b17-9b79-4377-8cf9-365108a96a5a" />
 <img width="709" height="586" alt="Screenshot 2025-10-15 at 13 29 01" src="https://github.com/user-attachments/assets/36664522-1eee-40bf-8f58-a2503668e1a4" />
@@ -156,7 +156,7 @@ This outputs a JSON response containing search metadata, summary statistics, and
 
 ### Parallel Processing
 
-Control the number of parallel workers:
+Grepfruit uses ractors for true parallel processing across CPU cores. Control the number of parallel workers:
 
 ```bash
 grepfruit search -r 'TODO' -j 8  # Use 8 parallel workers
