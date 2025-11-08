@@ -15,7 +15,8 @@ Gem::Specification.new do |spec|
   spec.summary = "Text pattern search tool with CI-friendly exit codes"
   spec.description = "A pattern search tool with CI-friendly exit codes and colorized or JSON formatted output"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.2", "< 3.5"
+  # TODO: support new ruby
+  spec.required_ruby_version = ">= 3.2", "< 3.6"
 
   spec.files = [
     "grepfruit.gemspec", "README.md", "CHANGELOG.md", "LICENSE.txt"

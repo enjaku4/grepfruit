@@ -1,3 +1,5 @@
+<!--TODO: new version-->
+
 ## v3.1.3
 
 - Fixed race condition in worker shutdown
