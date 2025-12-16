@@ -4,13 +4,14 @@ Gem::Specification.new do |spec|
   spec.name = "grepfruit"
   spec.version = Grepfruit::VERSION
   spec.authors = ["enjaku4"]
-  spec.email = ["enjaku4@icloud.com"]
+  spec.email = ["contact@brownbox.dev"]
   spec.homepage = "https://github.com/enjaku4/grepfruit"
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = spec.homepage
   spec.metadata["changelog_uri"] = "#{spec.homepage}/blob/master/CHANGELOG.md"
   spec.metadata["bug_tracker_uri"] = "#{spec.homepage}/issues"
   spec.metadata["documentation_uri"] = "#{spec.homepage}/blob/master/README.md"
+  spec.metadata["mailing_list_uri"] = "#{spec.homepage}/discussions"
   spec.metadata["rubygems_mfa_required"] = "true"
   spec.summary = "Text pattern search tool with CI-friendly exit codes"
   spec.description = "A pattern search tool with CI-friendly exit codes and colorized or JSON formatted output"
