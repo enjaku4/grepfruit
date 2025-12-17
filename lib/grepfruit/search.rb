@@ -16,6 +16,7 @@ module Grepfruit
       raise ArgumentError, "truncate must be a positive integer" if truncate && (!truncate.is_a?(Integer) || truncate <= 0)
       raise ArgumentError, "search_hidden must be a boolean" unless [true, false].include?(search_hidden)
       raise ArgumentError, "count must be a boolean" unless [true, false].include?(count)
+
       validate_jobs!(jobs)
     end
 
@@ -86,10 +87,10 @@ module Grepfruit
     private
 
     def validate_directory!
-      unless File.exist?(dir)
-        puts "Error: Directory '#{dir}' does not exist."
-        exit 1
-      end
+      return if File.exist?(dir)
+
+      puts "Error: Directory '#{dir}' does not exist."
+      exit 1
     end
 
     def execute_search
