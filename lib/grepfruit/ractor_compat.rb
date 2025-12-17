@@ -13,16 +13,11 @@ module Grepfruit
         worker.send(data)
       end
 
-      def self.receive_from_port(port)
-        port.receive
-      end
-
       def self.yield_result(port, data)
         port << data
       end
 
       def self.select_ready(workers_and_ports)
-        workers_and_ports.keys
         ports = workers_and_ports.values
         ready_port, result = Ractor.select(*ports)
         worker = workers_and_ports.key(ready_port)
@@ -36,10 +31,6 @@ module Grepfruit
 
       def self.send_work(worker, data)
         worker.send(data)
-      end
-
-      def self.receive_from_port(_port)
-        raise "Should not be called in Ruby 3"
       end
 
       def self.yield_result(_port, data)

@@ -12,10 +12,6 @@ module Grepfruit
     def number_of_files(num) = "#{num} file#{'s' if num != 1}"
     def number_of_matches(num) = "#{num} match#{'es' if num != 1}"
 
-    def relative_path(path)
-      path.delete_prefix("#{dir}/")
-    end
-
     def processed_line(line)
       stripped = line.strip
       truncate && stripped.length > truncate ? "#{stripped[0...truncate]}..." : stripped
