@@ -8,8 +8,14 @@ module Grepfruit
   class Search
     include Decorator
 
-    def self.validate_search_params!(regex:, jobs:)
+    def self.validate_search_params!(regex:, path:, exclude:, include:, truncate:, search_hidden:, jobs:, count:)
       raise ArgumentError, "regex is required" unless regex.is_a?(Regexp)
+      raise ArgumentError, "path must be a string" unless path.is_a?(String)
+      raise ArgumentError, "exclude must be an array" unless exclude.is_a?(Array)
+      raise ArgumentError, "include must be an array" unless include.is_a?(Array)
+      raise ArgumentError, "truncate must be a positive integer" if truncate && (!truncate.is_a?(Integer) || truncate <= 0)
+      raise ArgumentError, "search_hidden must be a boolean" unless [true, false].include?(search_hidden)
+      raise ArgumentError, "count must be a boolean" unless [true, false].include?(count)
       validate_jobs!(jobs)
     end
 
