@@ -28,7 +28,7 @@ module Grepfruit
 
     def execute
       results = execute_search
-      
+
       {
         search: {
           pattern: regex,

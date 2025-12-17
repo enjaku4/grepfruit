@@ -122,21 +122,21 @@ RSpec.describe Grepfruit::Search do
       end
 
       it "raises ArgumentError when regex is nil" do
-        expect {
+        expect do
           Grepfruit.search(path: "./spec/test_dataset", regex: nil)
-        }.to raise_error(ArgumentError, "regex is required")
+        end.to raise_error(ArgumentError, "regex is required")
       end
 
       it "raises ArgumentError when regex is a string" do
-        expect {
+        expect do
           Grepfruit.search(path: "./spec/test_dataset", regex: "TODO")
-        }.to raise_error(ArgumentError, "regex is required")
+        end.to raise_error(ArgumentError, "regex is required")
       end
 
       it "raises ArgumentError when jobs is less than 1" do
-        expect {
+        expect do
           Grepfruit.search(path: "./spec/test_dataset", regex: /TODO/, jobs: 0)
-        }.to raise_error(ArgumentError, "jobs must be at least 1")
+        end.to raise_error(ArgumentError, "jobs must be at least 1")
       end
 
       it "returns empty matches when no matches found" do

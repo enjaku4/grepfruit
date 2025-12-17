@@ -7,9 +7,9 @@ require_relative "grepfruit/cli"
 module Grepfruit
   class Error < StandardError; end
 
-  def self.search(path: ".", regex:, exclude: [], include: [], truncate: nil, search_hidden: false, jobs: nil)
+  def self.search(regex:, path: ".", exclude: [], include: [], truncate: nil, search_hidden: false, jobs: nil)
     validate_search_params!(regex: regex, jobs: jobs)
-    
+
     Search.new(
       dir: path,
       regex: regex,
@@ -21,8 +21,6 @@ module Grepfruit
       json_output: false
     ).execute
   end
-
-  private
 
   def self.validate_search_params!(regex:, jobs:)
     raise ArgumentError, "regex is required" unless regex.is_a?(Regexp)
