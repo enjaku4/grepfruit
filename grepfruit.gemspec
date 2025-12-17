@@ -16,6 +16,7 @@ Gem::Specification.new do |spec|
   spec.summary = "Text pattern search tool with CI-friendly exit codes"
   spec.description = "A pattern search tool with CI-friendly exit codes and colorized or JSON formatted output"
   spec.license = "MIT"
+  # TODO: ruby 4
   spec.required_ruby_version = ">= 3.2", "< 4.1"
 
   spec.files = [
