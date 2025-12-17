@@ -26,6 +26,31 @@ module Grepfruit
       display_final_results(execute_search)
     end
 
+    def execute
+      results = execute_search
+      
+      {
+        search: {
+          pattern: regex,
+          directory: dir,
+          exclusions: (excluded_paths + excluded_lines).map { |path_parts| path_parts.join("/") },
+          inclusions: included_paths.map { |path_parts| path_parts.join("/") }
+        },
+        summary: {
+          files_checked: results.total_files,
+          files_with_matches: results.total_files_with_matches,
+          total_matches: results.raw_matches.size
+        },
+        matches: results.raw_matches.map do |relative_path, line_num, line_content|
+          {
+            file: relative_path,
+            line: line_num,
+            content: processed_line(line_content)
+          }
+        end
+      }
+    end
+
     private
 
     def execute_search
@@ -52,7 +77,7 @@ module Grepfruit
 
     def display_final_results(results)
       if json_output
-        display_json_results(results.raw_matches, results.total_files, results.total_files_with_matches)
+        display_json_results(execute)
       else
         display_results(results.all_lines, results.total_files, results.total_files_with_matches)
       end
@@ -120,7 +145,7 @@ module Grepfruit
       file_results, has_matches = worker_result
 
       if has_matches
-        results.add_raw_matches(file_results) if json_output
+        results.add_raw_matches(file_results)
 
         unless json_output
           colored_lines = file_results.map do |relative_path, line_num, line_content|

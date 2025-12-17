@@ -8,6 +8,150 @@ RSpec.describe Grepfruit::Search do
     it { is_expected.to include("Commands:") }
   end
 
+  describe "programmatic API" do
+    describe ".search" do
+      it "returns a hash with search results" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /TODO/
+        )
+
+        expect(result).to be_a(Hash)
+        expect(result).to have_key(:search)
+        expect(result).to have_key(:summary)
+        expect(result).to have_key(:matches)
+      end
+
+      it "includes search metadata" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /TODO/
+        )
+
+        expect(result[:search][:pattern]).to eq(/TODO/)
+        expect(result[:search][:directory]).to eq(File.expand_path("./spec/test_dataset"))
+      end
+
+      it "includes correct summary counts" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /TODO/
+        )
+
+        expect(result[:summary][:files_checked]).to eq(4)
+        expect(result[:summary][:files_with_matches]).to eq(4)
+        expect(result[:summary][:total_matches]).to eq(16)
+      end
+
+      it "includes matches with file, line, and content" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /TODO/
+        )
+
+        expect(result[:matches]).to be_an(Array)
+        expect(result[:matches].size).to eq(16)
+
+        first_match = result[:matches].first
+        expect(first_match).to have_key(:file)
+        expect(first_match).to have_key(:line)
+        expect(first_match).to have_key(:content)
+      end
+
+      it "respects exclude option" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /TODO/,
+          exclude: ["folder", "bar.txt"]
+        )
+
+        expect(result[:summary][:total_matches]).to be < 16
+        expect(result[:matches].none? { |m| m[:file].include?("folder") || m[:file].include?("bar.txt") }).to be true
+      end
+
+      it "respects include option" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /TODO/,
+          include: ["*.py"]
+        )
+
+        expect(result[:summary][:files_checked]).to eq(1)
+        expect(result[:summary][:total_matches]).to eq(4)
+        expect(result[:matches].all? { |m| m[:file].end_with?(".py") }).to be true
+      end
+
+      it "respects truncate option" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /TODO/,
+          truncate: 15
+        )
+
+        result[:matches].each do |match|
+          expect(match[:content].length).to be <= 18
+        end
+
+        expect(result[:matches].any? { |m| m[:content].end_with?("...") }).to be true
+      end
+
+      it "respects search_hidden option" do
+        result_without_hidden = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /TODO/,
+          search_hidden: false
+        )
+
+        result_with_hidden = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /TODO/,
+          search_hidden: true
+        )
+
+        expect(result_with_hidden[:summary][:total_matches]).to be > result_without_hidden[:summary][:total_matches]
+      end
+
+      it "respects jobs option" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /TODO/,
+          jobs: 1
+        )
+
+        expect(result[:summary][:total_matches]).to eq(16)
+      end
+
+      it "raises ArgumentError when regex is nil" do
+        expect {
+          Grepfruit.search(path: "./spec/test_dataset", regex: nil)
+        }.to raise_error(ArgumentError, "regex is required")
+      end
+
+      it "raises ArgumentError when regex is a string" do
+        expect {
+          Grepfruit.search(path: "./spec/test_dataset", regex: "TODO")
+        }.to raise_error(ArgumentError, "regex is required")
+      end
+
+      it "raises ArgumentError when jobs is less than 1" do
+        expect {
+          Grepfruit.search(path: "./spec/test_dataset", regex: /TODO/, jobs: 0)
+        }.to raise_error(ArgumentError, "jobs must be at least 1")
+      end
+
+      it "returns empty matches when no matches found" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /NONEXISTENT/
+        )
+
+        expect(result[:matches]).to be_empty
+        expect(result[:summary][:total_matches]).to eq(0)
+        expect(result[:summary][:files_with_matches]).to eq(0)
+      end
+    end
+  end
+
   describe "basic search functionality" do
     context "when path is specified" do
       subject { `./exe/grepfruit search -r 'TODO' ./spec/test_dataset` }
