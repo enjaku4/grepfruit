@@ -64,7 +64,7 @@ module Grepfruit
 
     def execute_search
       results = SearchResults.new
-      workers_and_ports = jobs.times.map { create_persistent_worker }
+      workers_and_ports = Array.new(jobs) { create_persistent_worker }
       file_enumerator = create_file_enumerator
       active_workers = {}
 

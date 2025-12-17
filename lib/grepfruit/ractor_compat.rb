@@ -3,9 +3,9 @@ module Grepfruit
     RUBY_4_OR_LATER = RUBY_VERSION >= "4.0"
 
     if RUBY_4_OR_LATER
-      def self.create_worker(&block)
+      def self.create_worker(&)
         port = Ractor::Port.new
-        worker = Ractor.new(port, &block)
+        worker = Ractor.new(port, &)
         [worker, port]
       end
 
@@ -22,16 +22,15 @@ module Grepfruit
       end
 
       def self.select_ready(workers_and_ports)
-        workers = workers_and_ports.keys
+        workers_and_ports.keys
         ports = workers_and_ports.values
-        ready_port = Ractor.select(*ports)
+        ready_port, result = Ractor.select(*ports)
         worker = workers_and_ports.key(ready_port)
-        result = ready_port.receive
         [worker, result]
       end
     else
-      def self.create_worker(&block)
-        worker = Ractor.new(&block)
+      def self.create_worker(&)
+        worker = Ractor.new(&)
         [worker, nil]
       end
 
