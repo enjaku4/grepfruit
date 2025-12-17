@@ -1,6 +1,6 @@
 module Grepfruit
   class SearchResults
-    attr_reader :all_lines, :raw_matches, :total_files_with_matches
+    attr_reader :all_lines, :raw_matches, :total_files_with_matches, :match_count
     attr_accessor :total_files
 
     def initialize
@@ -8,6 +8,7 @@ module Grepfruit
       @raw_matches = []
       @total_files = 0
       @total_files_with_matches = 0
+      @match_count = 0
     end
 
     def increment_files_with_matches
@@ -20,6 +21,7 @@ module Grepfruit
 
     def add_raw_matches(matches)
       @raw_matches.concat(matches)
+      @match_count += matches.size
     end
   end
 end

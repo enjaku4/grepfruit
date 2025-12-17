@@ -21,15 +21,15 @@ module Grepfruit
       truncate && stripped.length > truncate ? "#{stripped[0...truncate]}..." : stripped
     end
 
-    def display_results(lines, files, files_with_matches)
+    def display_results(lines, files, files_with_matches, total_matches)
       puts "\n\n" if files.positive?
 
-      if lines.empty?
+      if total_matches.zero?
         puts "#{number_of_files(files)} checked, #{green('no matches found')}"
         exit(0)
       else
-        puts "Matches:\n\n#{lines.join("\n")}\n\n"
-        puts "#{number_of_files(files)} checked, #{red("#{number_of_matches(lines.size)} found in #{number_of_files(files_with_matches)}")}"
+        puts "Matches:\n\n#{lines.join("\n")}\n\n" unless lines.empty?
+        puts "#{number_of_files(files)} checked, #{red("#{number_of_matches(total_matches)} found in #{number_of_files(files_with_matches)}")}"
         exit(1)
       end
     end
@@ -42,7 +42,7 @@ module Grepfruit
 
       puts JSON.pretty_generate(result_hash)
 
-      exit(result_hash[:matches].empty? ? 0 : 1)
+      exit(result_hash[:summary][:total_matches].zero? ? 0 : 1)
     end
   end
 end

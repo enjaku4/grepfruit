@@ -149,6 +149,42 @@ RSpec.describe Grepfruit::Search do
         expect(result[:summary][:total_matches]).to eq(0)
         expect(result[:summary][:files_with_matches]).to eq(0)
       end
+
+      it "returns result without matches key when count is true" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /TODO/,
+          count: true
+        )
+
+        expect(result).not_to have_key(:matches)
+        expect(result[:summary][:total_matches]).to eq(16)
+        expect(result[:summary][:files_checked]).to eq(4)
+        expect(result[:summary][:files_with_matches]).to eq(4)
+      end
+
+      it "includes search metadata when count is true" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /TODO/,
+          count: true
+        )
+
+        expect(result[:search][:pattern]).to eq(/TODO/)
+        expect(result[:search][:directory]).to eq(File.expand_path("./spec/test_dataset"))
+      end
+
+      it "returns result without matches key with count when no matches found" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /NONEXISTENT/,
+          count: true
+        )
+
+        expect(result).not_to have_key(:matches)
+        expect(result[:summary][:total_matches]).to eq(0)
+        expect(result[:summary][:files_with_matches]).to eq(0)
+      end
     end
   end
 
@@ -532,6 +568,57 @@ RSpec.describe Grepfruit::Search do
         expect(json["search"]["inclusions"]).to contain_exactly("*.py", "*.txt")
         expect(json["search"]["exclusions"]).to contain_exactly("ba*")
       end
+    end
+  end
+
+  describe "count mode" do
+    context "when --count flag is used with matches" do
+      subject { `./exe/grepfruit search -r 'TODO' --count ./spec/test_dataset` }
+
+      it { is_expected.to include("4 files checked") }
+      it { is_expected.to include("16 matches found") }
+      it { is_expected.to include("in 4 files") }
+      it { is_expected.not_to include("bar.txt:") }
+      it { is_expected.not_to include("TODO:") }
+      it { is_expected.not_to include("Matches:") }
+    end
+
+    context "when -c short flag is used" do
+      subject { `./exe/grepfruit search -r 'TODO' -c ./spec/test_dataset` }
+
+      it { is_expected.to include("4 files checked") }
+      it { is_expected.to include("16 matches found") }
+    end
+
+    context "when --count flag is used with no matches" do
+      subject { `./exe/grepfruit search -r 'NONEXISTENT' --count ./spec/test_dataset` }
+
+      it { is_expected.to include("4 files checked") }
+      it { is_expected.to include("no matches found") }
+    end
+
+    context "when --count is combined with --exclude" do
+      subject { `./exe/grepfruit search -r 'TODO' --count -e 'folder,bar.txt' ./spec/test_dataset` }
+
+      it { is_expected.to include("2 files checked") }
+      it { is_expected.to include("12 matches found") }
+    end
+
+    context "when --count is combined with --include" do
+      subject { `./exe/grepfruit search -r 'TODO' --count -i '*.py' ./spec/test_dataset` }
+
+      it { is_expected.to include("1 file checked") }
+      it { is_expected.to include("4 matches found") }
+    end
+
+    it "exits with code 1 when matches are found" do
+      system("./exe/grepfruit search -r 'TODO' --count ./spec/test_dataset > /dev/null")
+      expect($?.exitstatus).to eq(1)
+    end
+
+    it "exits with code 0 when no matches are found" do
+      system("./exe/grepfruit search -r 'NONEXISTENT' --count ./spec/test_dataset > /dev/null")
+      expect($?.exitstatus).to eq(0)
     end
   end
 

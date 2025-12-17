@@ -16,6 +16,7 @@ module Grepfruit
       option :search_hidden, type: :flag, default: false, desc: "Search hidden files and directories"
       option :jobs, aliases: ["-j"], type: :integer, desc: "Number of parallel workers (default: all CPU cores, use 1 for sequential)"
       option :json, type: :flag, default: false, desc: "Output results in JSON format"
+      option :count, aliases: ["-c"], type: :flag, default: false, desc: "Show only counts, not match details"
 
       def call(path: ".", **options)
         validate_options!(options)
@@ -34,7 +35,8 @@ module Grepfruit
           truncate: options[:truncate]&.to_i,
           search_hidden: options[:search_hidden],
           jobs: options[:jobs]&.to_i,
-          json_output: options[:json]
+          json_output: options[:json],
+          count_only: options[:count]
         ).run
       end
 

@@ -7,7 +7,7 @@ require_relative "grepfruit/cli"
 module Grepfruit
   class Error < StandardError; end
 
-  def self.search(regex:, path: ".", exclude: [], include: [], truncate: nil, search_hidden: false, jobs: nil)
+  def self.search(regex:, path: ".", exclude: [], include: [], truncate: nil, search_hidden: false, jobs: nil, count: false)
     validate_search_params!(regex: regex, jobs: jobs)
 
     Search.new(
@@ -18,7 +18,8 @@ module Grepfruit
       truncate: truncate,
       search_hidden: search_hidden,
       jobs: jobs,
-      json_output: false
+      json_output: false,
+      count_only: count
     ).execute
   end
 
