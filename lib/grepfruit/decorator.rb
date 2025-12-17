@@ -22,7 +22,7 @@ module Grepfruit
     end
 
     def display_results(lines, files, files_with_matches, total_matches)
-      puts "\n\n" if files.positive?
+      puts "" if files.positive?
 
       if total_matches.zero?
         puts "#{number_of_files(files)} checked, #{green('no matches found')}"

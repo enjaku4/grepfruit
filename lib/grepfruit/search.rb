@@ -22,14 +22,16 @@ module Grepfruit
     end
 
     def run
-      puts "Searching for #{regex.inspect} in #{dir.inspect}...\n\n" unless json_output || count_only
+      puts "Searching for #{regex.inspect} in #{dir.inspect}..." unless json_output
 
-      display_final_results(execute_search)
+      results = execute_search
+
+      display_final_results(results)
     end
 
     def execute
       results = execute_search
-      
+
       result_hash = {
         search: {
           pattern: regex,
@@ -155,19 +157,12 @@ module Grepfruit
         results.add_raw_matches(file_results)
         results.instance_variable_set(:@match_count, results.match_count + match_count) if count_only
 
-        unless json_output
-          if count_only
-            print red("M")
-          else
-            colored_lines = file_results.map do |relative_path, line_num, line_content|
-              "#{cyan("#{relative_path}:#{line_num}")}: #{processed_line(line_content)}"
-            end
-            results.add_lines(colored_lines)
-            print red("M")
+        unless json_output || count_only
+          colored_lines = file_results.map do |relative_path, line_num, line_content|
+            "#{cyan("#{relative_path}:#{line_num}")}: #{processed_line(line_content)}"
           end
+          results.add_lines(colored_lines)
         end
-      else
-        print green(".") unless json_output
       end
 
       has_matches
