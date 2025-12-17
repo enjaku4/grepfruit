@@ -15,6 +15,10 @@ module Grepfruit
       @total_files_with_matches += 1
     end
 
+    def increment_match_count(count)
+      @match_count += count
+    end
+
     def add_lines(lines)
       @all_lines.concat(lines)
     end

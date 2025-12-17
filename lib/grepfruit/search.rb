@@ -8,6 +8,21 @@ module Grepfruit
   class Search
     include Decorator
 
+    def self.validate_search_params!(regex:, jobs:)
+      raise ArgumentError, "regex is required" unless regex.is_a?(Regexp)
+      validate_jobs!(jobs)
+    end
+
+    def self.validate_jobs!(jobs)
+      raise ArgumentError, "jobs must be at least 1" if jobs && jobs < 1
+    end
+
+    def self.create_regex(pattern)
+      Regexp.new(pattern)
+    rescue RegexpError => e
+      raise ArgumentError, "Invalid regex pattern - #{e.message}"
+    end
+
     attr_reader :dir, :regex, :excluded_paths, :excluded_lines, :included_paths, :truncate, :search_hidden, :jobs, :json_output, :count_only
 
     def initialize(dir:, regex:, exclude:, include:, truncate:, search_hidden:, jobs:, json_output: false, count_only: false)
@@ -23,6 +38,7 @@ module Grepfruit
     end
 
     def run
+      validate_directory!
       puts "Searching for #{regex.inspect} in #{dir.inspect}..." unless json_output
 
       results = execute_search
@@ -31,6 +47,7 @@ module Grepfruit
     end
 
     def execute
+      validate_directory!
       results = execute_search
 
       result_hash = {
@@ -61,6 +78,13 @@ module Grepfruit
     end
 
     private
+
+    def validate_directory!
+      unless File.exist?(dir)
+        puts "Error: Directory '#{dir}' does not exist."
+        exit 1
+      end
+    end
 
     def execute_search
       results = SearchResults.new
@@ -145,9 +169,6 @@ module Grepfruit
 
           yielder << path
         end
-      rescue Errno::ENOENT
-        puts "Error: Directory '#{dir}' does not exist."
-        exit 1
       end
     end
 
@@ -156,7 +177,7 @@ module Grepfruit
 
       if has_matches
         results.add_raw_matches(file_results)
-        results.instance_variable_set(:@match_count, results.match_count + match_count) if count_only
+        results.increment_match_count(match_count) if count_only
 
         unless json_output || count_only
           colored_lines = file_results.map do |relative_path, line_num, line_content|

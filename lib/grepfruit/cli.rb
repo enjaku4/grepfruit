@@ -22,7 +22,7 @@ module Grepfruit
         validate_options!(options)
 
         begin
-          regex_pattern = Grepfruit.send(:create_regex, options[:regex])
+          regex_pattern = Grepfruit::Search.create_regex(options[:regex])
         rescue ArgumentError => e
           error_exit(e.message)
         end
@@ -44,7 +44,12 @@ module Grepfruit
 
       def validate_options!(options)
         error_exit("You must specify a regex pattern using the -r or --regex option.") unless options[:regex]
-        error_exit("Number of jobs must be at least 1") if (jobs = options[:jobs]&.to_i) && jobs < 1
+        
+        begin
+          Grepfruit::Search.validate_jobs!(options[:jobs]&.to_i)
+        rescue ArgumentError => e
+          error_exit(e.message)
+        end
       end
 
       def error_exit(message)

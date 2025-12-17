@@ -2,15 +2,15 @@ module Grepfruit
   module RactorCompat
     RUBY_4_OR_LATER = RUBY_VERSION >= "4.0"
 
+    def self.send_work(worker, data)
+      worker.send(data)
+    end
+
     if RUBY_4_OR_LATER
       def self.create_worker(&)
         port = Ractor::Port.new
         worker = Ractor.new(port, &)
         [worker, port]
-      end
-
-      def self.send_work(worker, data)
-        worker.send(data)
       end
 
       def self.yield_result(port, data)
@@ -27,10 +27,6 @@ module Grepfruit
       def self.create_worker(&)
         worker = Ractor.new(&)
         [worker, nil]
-      end
-
-      def self.send_work(worker, data)
-        worker.send(data)
       end
 
       def self.yield_result(_port, data)
