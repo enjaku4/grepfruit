@@ -1,5 +1,6 @@
 require "find"
 require "etc"
+require_relative "ractor_compat"
 
 Warning[:experimental] = false
 
@@ -63,23 +64,23 @@ module Grepfruit
 
     def execute_search
       results = SearchResults.new
-      workers = Array.new(jobs) { create_persistent_worker }
+      workers_and_ports = jobs.times.map { create_persistent_worker }
       file_enumerator = create_file_enumerator
       active_workers = {}
 
-      workers.each do |worker|
-        assign_file_to_worker(worker, file_enumerator, active_workers, results)
+      workers_and_ports.each do |worker, port|
+        assign_file_to_worker(worker, port, file_enumerator, active_workers, results)
       end
 
       while active_workers.any?
-        ready_worker, worker_result = Ractor.select(*active_workers.keys)
-        active_workers.delete(ready_worker)
+        ready_worker, worker_result = RactorCompat.select_ready(active_workers)
+        port = active_workers.delete(ready_worker)
 
         results.increment_files_with_matches if process_worker_result(worker_result, results)
-        assign_file_to_worker(ready_worker, file_enumerator, active_workers, results)
+        assign_file_to_worker(ready_worker, port, file_enumerator, active_workers, results)
       end
 
-      shutdown_workers(workers)
+      shutdown_workers(workers_and_ports.map(&:first))
       results
     end
 
@@ -92,7 +93,7 @@ module Grepfruit
     end
 
     def create_persistent_worker
-      Ractor.new do
+      RactorCompat.create_worker do |port|
         loop do
           work = Ractor.receive
           break if work == :quit
@@ -111,17 +112,17 @@ module Grepfruit
             match_count += 1
           end
 
-          Ractor.yield([file_results, has_matches, match_count])
+          RactorCompat.yield_result(port, [file_results, has_matches, match_count])
         end
       end
     end
 
-    def assign_file_to_worker(worker, file_enumerator, active_workers, results)
+    def assign_file_to_worker(worker, port, file_enumerator, active_workers, results)
       file_path = get_next_file(file_enumerator)
       return unless file_path
 
-      worker.send([file_path, regex, excluded_lines, dir, count_only])
-      active_workers[worker] = file_path
+      RactorCompat.send_work(worker, [file_path, regex, excluded_lines, dir, count_only])
+      active_workers[worker] = port
       results.total_files += 1
     end
 
