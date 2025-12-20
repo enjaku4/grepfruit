@@ -24,7 +24,7 @@ module Grepfruit
         puts "#{number_of_files(files)} checked, #{green('no matches found')}"
         exit(0)
       else
-        puts "Matches:\n\n#{lines.join("\n")}\n\n" unless lines.empty?
+        puts "#{lines.join("\n")}\n\n" unless lines.empty?
         puts "#{number_of_files(files)} checked, #{red("#{number_of_matches(total_matches)} found in #{number_of_files(files_with_matches)}")}"
         exit(1)
       end
