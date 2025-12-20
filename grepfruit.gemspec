@@ -13,8 +13,8 @@ Gem::Specification.new do |spec|
   spec.metadata["documentation_uri"] = "#{spec.homepage}/blob/master/README.md"
   spec.metadata["mailing_list_uri"] = "#{spec.homepage}/discussions"
   spec.metadata["rubygems_mfa_required"] = "true"
-  spec.summary = "Text pattern search tool with CI-friendly exit codes"
-  spec.description = "A pattern search tool with CI-friendly exit codes and colorized or JSON formatted output"
+  spec.summary = "Text search tool"
+  spec.description = "A tool for searching regex patterns in files with a CI/CD-friendly CLI and a programmatic Ruby API"
   spec.license = "MIT"
   # TODO: ruby 4
   spec.required_ruby_version = ">= 3.2", "< 4.1"
