@@ -16,6 +16,8 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.2
+      - name: Bundle install
+        run: bundle install
       - name: Run Todo Search
         run: ./exe/grepfruit s -r 'TODO' -e 'vendor,.yardoc,.git,ci.yml:22,README.md,spec/grepfruit/search_spec.rb,spec/test_dataset' --search-hidden
 
