@@ -1,13 +1,11 @@
-<!--TODO-->
-
-# Grepfruit: Pattern Search Tool for CI/CD Pipelines
+# Grepfruit: Text Search Tool
 
 [![Gem Version](https://badge.fury.io/rb/grepfruit.svg)](http://badge.fury.io/rb/grepfruit)
 [![Downloads](https://img.shields.io/gem/dt/grepfruit.svg)](https://rubygems.org/gems/grepfruit)
 [![Github Actions badge](https://github.com/enjaku4/grepfruit/actions/workflows/ci.yml/badge.svg)](https://github.com/enjaku4/grepfruit/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/enjaku4/grepfruit.svg)](LICENSE)
 
-Grepfruit is a pattern search tool designed for CI/CD pipelines with exit codes that signal failure when matches are found. It outputs colorized text for readability or JSON for automation.
+Grepfruit is a tool for searching regex patterns in files, with a CLI designed for CI/CD pipelines and a programmatic API for Ruby applications.
 
 <img width="933" height="221" alt="Screenshot 2025-10-15 at 13 28 06" src="https://github.com/user-attachments/assets/cad09b17-9b79-4377-8cf9-365108a96a5a" />
 <img width="709" height="586" alt="Screenshot 2025-10-15 at 13 29 01" src="https://github.com/user-attachments/assets/36664522-1eee-40bf-8f58-a2503668e1a4" />
@@ -20,6 +18,7 @@ Grepfruit is a pattern search tool designed for CI/CD pipelines with exit codes 
   - [Command Line Options](#command-line-options)
   - [Usage Examples](#usage-examples)
   - [Exit Status](#exit-status)
+  - [Programmatic API](#programmatic-api)
 
 **Community Resources:**
   - [Getting Help and Contributing](#getting-help-and-contributing)
@@ -59,6 +58,7 @@ If no PATH is specified, Grepfruit searches the current directory.
 | `-i, --include x,y,z` | Comma-separated list of file patterns to include (only these files will be searched) |
 | `-t, --truncate N` | Truncate search result output to N characters |
 | `-j, --jobs N` | Number of parallel workers (default: number of CPU cores) |
+| `-c, --count` | Show only match counts, not match details |
 | `--search-hidden` | Include hidden files and directories in search |
 | `--json` | Output results in JSON format |
 
@@ -171,6 +171,47 @@ Grepfruit returns meaningful exit codes for CI/CD integration:
 
 - **Exit code 0**: No matches found (ideal for quality gates - code is clean)
 - **Exit code 1**: Pattern matches were found (CI should fail - issues detected)
+
+## Programmatic API
+
+Use Grepfruit directly in Ruby applications:
+
+```rb
+result = Grepfruit.search(
+  regex: /TODO|FIXME/,
+  path: "app",
+  exclude: ["tmp", "vendor"],
+  include: ["*.rb"],
+  truncate: 80,
+  search_hidden: false,
+  jobs: 4,
+  count: false
+)
+```
+
+Returns a hash:
+
+```rb
+{
+  search: {
+    pattern: /TODO|FIXME/,
+    directory: "/path/to/app",
+    exclusions: ["tmp", "vendor"],
+    inclusions: ["*.rb"]
+  },
+  summary: {
+    files_checked: 42,
+    files_with_matches: 8,
+    total_matches: 23
+  },
+  matches: [
+    { file: "models/user.rb", line: 15, content: "# TODO: add validation" },
+    # ...
+  ]
+}
+```
+
+All keyword arguments correspond to their CLI flag counterparts.
 
 ## Getting Help and Contributing
 
