@@ -55,8 +55,10 @@ module Grepfruit
 
     def execute
       validate_directory!
-      results = execute_search
+      build_result_hash(execute_search)
+    end
 
+    def build_result_hash(results)
       result_hash = {
         search: {
           pattern: regex,
@@ -117,9 +119,9 @@ module Grepfruit
 
     def display_final_results(results)
       if json_output
-        display_json_results(execute)
+        display_json_results(build_result_hash(results))
       else
-        display_results(results.all_lines, results.total_files, results.total_files_with_matches, results.match_count)
+        display_results(results)
       end
     end
 

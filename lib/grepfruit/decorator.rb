@@ -17,15 +17,15 @@ module Grepfruit
       truncate && stripped.length > truncate ? "#{stripped[0...truncate]}..." : stripped
     end
 
-    def display_results(lines, files, files_with_matches, total_matches)
-      puts "" if files.positive?
+    def display_results(results)
+      puts "" if results.total_files.positive?
 
-      if total_matches.zero?
-        puts "#{number_of_files(files)} checked, #{green('no matches found')}"
+      if results.match_count.zero?
+        puts "#{number_of_files(results.total_files)} checked, #{green('no matches found')}"
         exit(0)
       else
-        puts "#{lines.join("\n")}\n\n" unless lines.empty?
-        puts "#{number_of_files(files)} checked, #{red("#{number_of_matches(total_matches)} found in #{number_of_files(files_with_matches)}")}"
+        puts "#{results.all_lines.join("\n")}\n\n" unless results.all_lines.empty?
+        puts "#{number_of_files(results.total_files)} checked, #{red("#{number_of_matches(results.match_count)} found in #{number_of_files(results.total_files_with_matches)}")}"
         exit(1)
       end
     end
