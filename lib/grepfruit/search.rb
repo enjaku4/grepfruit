@@ -30,11 +30,13 @@ module Grepfruit
       raise ArgumentError, "Invalid regex pattern - #{e.message}"
     end
 
-    attr_reader :dir, :regex, :excluded_paths, :excluded_lines, :included_paths, :truncate, :search_hidden, :jobs, :json_output, :count_only
+    attr_reader :dir, :regex, :exclusions, :inclusions, :excluded_paths, :excluded_lines, :included_paths, :truncate, :search_hidden, :jobs, :json_output, :count_only
 
     def initialize(dir:, regex:, exclude:, include:, truncate:, search_hidden:, jobs:, json_output: false, count_only: false)
       @dir = File.expand_path(dir)
       @regex = regex
+      @exclusions = exclude
+      @inclusions = include
       @excluded_lines, @excluded_paths = exclude.map { _1.split("/") }.partition { _1.last.include?(":") }
       @included_paths = include.map { _1.split("/") }
       @truncate = truncate
@@ -63,8 +65,8 @@ module Grepfruit
         search: {
           pattern: regex,
           directory: dir,
-          exclusions: (excluded_paths + excluded_lines).map { |path_parts| path_parts.join("/") },
-          inclusions: included_paths.map { |path_parts| path_parts.join("/") }
+          exclusions: exclusions,
+          inclusions: inclusions
         },
         summary: {
           files_checked: results.total_files,
@@ -184,19 +186,19 @@ module Grepfruit
     def process_worker_result(worker_result, results)
       file_results, has_matches, match_count = worker_result
 
-      if has_matches
-        results.add_raw_matches(file_results)
-        results.increment_match_count(match_count) if count_only
+      return false unless has_matches
 
-        unless json_output || count_only
-          colored_lines = file_results.map do |relative_path, line_num, line_content|
-            "#{cyan("#{relative_path}:#{line_num}")}: #{processed_line(line_content)}"
-          end
-          results.add_lines(colored_lines)
+      results.add_match_count(match_count)
+      results.add_raw_matches(file_results)
+
+      unless json_output || count_only
+        colored_lines = file_results.map do |relative_path, line_num, line_content|
+          "#{cyan("#{relative_path}:#{line_num}")}: #{processed_line(line_content)}"
         end
+        results.add_lines(colored_lines)
       end
 
-      has_matches
+      true
     end
 
     def excluded_path?(path)

@@ -15,7 +15,7 @@ module Grepfruit
       @total_files_with_matches += 1
     end
 
-    def increment_match_count(count)
+    def add_match_count(count)
       @match_count += count
     end
 
@@ -25,7 +25,6 @@ module Grepfruit
 
     def add_raw_matches(matches)
       @raw_matches.concat(matches)
-      @match_count += matches.size
     end
   end
 end
