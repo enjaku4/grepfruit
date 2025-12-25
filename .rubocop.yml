@@ -76,5 +76,9 @@ Style/SpecialGlobalVars:
 Style/StringLiterals:
   EnforcedStyle: double_quotes
 
+Style/TrailingCommaInArrayLiteral:
+  Exclude:
+    - 'README.md'
+
 Style/WordArray:
   EnforcedStyle: brackets

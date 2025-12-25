@@ -12,62 +12,33 @@ module Grepfruit
     def number_of_files(num) = "#{num} file#{'s' if num != 1}"
     def number_of_matches(num) = "#{num} match#{'es' if num != 1}"
 
-    def relative_path(path)
-      path.delete_prefix("#{dir}/")
-    end
-
     def processed_line(line)
       stripped = line.strip
       truncate && stripped.length > truncate ? "#{stripped[0...truncate]}..." : stripped
     end
 
-    def display_results(lines, files, files_with_matches)
-      puts "\n\n" if files.positive?
+    def display_results(results)
+      puts "" if results.total_files.positive?
 
-      if lines.empty?
-        puts "#{number_of_files(files)} checked, #{green('no matches found')}"
+      if results.match_count.zero?
+        puts "#{number_of_files(results.total_files)} checked, #{green('no matches found')}"
         exit(0)
       else
-        puts "Matches:\n\n#{lines.join("\n")}\n\n"
-        puts "#{number_of_files(files)} checked, #{red("#{number_of_matches(lines.size)} found in #{number_of_files(files_with_matches)}")}"
+        puts "#{results.all_lines.join("\n")}\n\n" unless results.all_lines.empty?
+        puts "#{number_of_files(results.total_files)} checked, #{red("#{number_of_matches(results.match_count)} found in #{number_of_files(results.total_files_with_matches)}")}"
         exit(1)
       end
     end
 
-    def display_json_results(raw_matches, total_files, files_with_matches)
+    def display_json_results(result_hash)
       require "json"
 
-      search_info = {
-        pattern: regex.inspect,
-        directory: dir,
-        exclusions: (excluded_paths + excluded_lines).map { |path_parts| path_parts.join("/") },
-        inclusions: included_paths.map { |path_parts| path_parts.join("/") },
-        timestamp: Time.now.strftime("%Y-%m-%dT%H:%M:%S%z")
-      }
+      result_hash[:search][:pattern] = result_hash[:search][:pattern].inspect
+      result_hash[:search][:timestamp] = Time.now.strftime("%Y-%m-%dT%H:%M:%S%z")
 
-      summary = {
-        files_checked: total_files,
-        files_with_matches: files_with_matches,
-        total_matches: raw_matches.size
-      }
+      puts JSON.pretty_generate(result_hash)
 
-      matches = raw_matches.map do |relative_path, line_num, line_content|
-        {
-          file: relative_path,
-          line: line_num,
-          content: line_content.strip
-        }
-      end
-
-      result = {
-        search: search_info,
-        summary: summary,
-        matches: matches
-      }
-
-      puts JSON.pretty_generate(result)
-
-      exit(raw_matches.empty? ? 0 : 1)
+      exit(result_hash[:summary][:total_matches].zero? ? 0 : 1)
     end
   end
 end

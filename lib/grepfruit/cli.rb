@@ -16,19 +16,27 @@ module Grepfruit
       option :search_hidden, type: :flag, default: false, desc: "Search hidden files and directories"
       option :jobs, aliases: ["-j"], type: :integer, desc: "Number of parallel workers (default: all CPU cores, use 1 for sequential)"
       option :json, type: :flag, default: false, desc: "Output results in JSON format"
+      option :count, aliases: ["-c"], type: :flag, default: false, desc: "Show only counts, not match details"
 
       def call(path: ".", **options)
         validate_options!(options)
 
+        begin
+          regex_pattern = Grepfruit::Search.create_regex(options[:regex])
+        rescue ArgumentError => e
+          error_exit(e.message)
+        end
+
         Grepfruit::Search.new(
           dir: path,
-          regex: create_regex(options[:regex]),
+          regex: regex_pattern,
           exclude: options[:exclude] || [],
           include: options[:include] || [],
           truncate: options[:truncate]&.to_i,
           search_hidden: options[:search_hidden],
           jobs: options[:jobs]&.to_i,
-          json_output: options[:json]
+          json_output: options[:json],
+          count_only: options[:count]
         ).run
       end
 
@@ -36,13 +44,12 @@ module Grepfruit
 
       def validate_options!(options)
         error_exit("You must specify a regex pattern using the -r or --regex option.") unless options[:regex]
-        error_exit("Number of jobs must be at least 1") if (jobs = options[:jobs]&.to_i) && jobs < 1
-      end
 
-      def create_regex(pattern)
-        Regexp.new(pattern)
-      rescue RegexpError => e
-        error_exit("Invalid regex pattern - #{e.message}")
+        begin
+          Grepfruit::Search.validate_jobs!(options[:jobs]&.to_i)
+        rescue ArgumentError => e
+          error_exit(e.message)
+        end
       end
 
       def error_exit(message)
