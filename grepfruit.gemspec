@@ -16,7 +16,6 @@ Gem::Specification.new do |spec|
   spec.summary = "Text search tool"
   spec.description = "A tool for searching regex patterns in files with a CI/CD-friendly CLI and a programmatic Ruby API"
   spec.license = "MIT"
-  # TODO: ruby 4
   spec.required_ruby_version = ">= 3.2", "< 4.1"
 
   spec.files = [
