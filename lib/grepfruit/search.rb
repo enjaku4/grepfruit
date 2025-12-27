@@ -16,18 +16,11 @@ module Grepfruit
       raise ArgumentError, "truncate must be a positive integer" if truncate && (!truncate.is_a?(Integer) || truncate <= 0)
       raise ArgumentError, "search_hidden must be a boolean" unless [true, false].include?(search_hidden)
       raise ArgumentError, "count must be a boolean" unless [true, false].include?(count)
-
-      validate_jobs!(jobs)
+      raise ArgumentError, "jobs must be at least 1" if jobs && (!jobs.is_a?(Integer) || jobs < 1)
     end
 
     def self.validate_jobs!(jobs)
       raise ArgumentError, "jobs must be at least 1" if jobs && jobs < 1
-    end
-
-    def self.create_regex(pattern)
-      Regexp.new(pattern)
-    rescue RegexpError => e
-      raise ArgumentError, "Invalid regex pattern - #{e.message}"
     end
 
     attr_reader :dir, :regex, :exclusions, :inclusions, :excluded_paths, :excluded_lines, :included_paths, :truncate, :search_hidden, :jobs, :json_output, :count_only

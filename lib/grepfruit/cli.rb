@@ -22,9 +22,9 @@ module Grepfruit
         validate_options!(options)
 
         begin
-          regex_pattern = Grepfruit::Search.create_regex(options[:regex])
-        rescue ArgumentError => e
-          error_exit(e.message)
+          regex_pattern = Regexp.new(options[:regex])
+        rescue RegexpError => e
+          error_exit("Invalid regex pattern - #{e.message}")
         end
 
         Grepfruit::Search.new(
