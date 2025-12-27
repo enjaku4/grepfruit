@@ -22,11 +22,9 @@ module Grepfruit
 
       if results.match_count.zero?
         puts "#{number_of_files(results.total_files)} checked, #{green('no matches found')}"
-        exit(0)
       else
         puts "#{results.all_lines.join("\n")}\n\n" unless results.all_lines.empty?
         puts "#{number_of_files(results.total_files)} checked, #{red("#{number_of_matches(results.match_count)} found in #{number_of_files(results.total_files_with_matches)}")}"
-        exit(1)
       end
     end
 
@@ -37,8 +35,6 @@ module Grepfruit
       result_hash[:search][:timestamp] = Time.now.strftime("%Y-%m-%dT%H:%M:%S%z")
 
       puts JSON.pretty_generate(result_hash)
-
-      exit(result_hash[:summary][:total_matches].zero? ? 0 : 1)
     end
   end
 end

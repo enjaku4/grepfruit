@@ -118,6 +118,8 @@ module Grepfruit
       else
         display_results(results)
       end
+
+      exit(results.match_count.positive? ? 1 : 0)
     end
 
     def create_persistent_worker
