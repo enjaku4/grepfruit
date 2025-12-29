@@ -75,6 +75,17 @@ module Grepfruit
       results
     end
 
+    def process_worker_result(worker_result, results)
+      file_results, has_matches, match_count = worker_result
+
+      return false unless has_matches
+
+      results.add_match_count(match_count)
+      results.add_raw_matches(file_results)
+
+      true
+    end
+
     def create_persistent_worker
       RactorCompat.create_worker do |port|
         loop do
