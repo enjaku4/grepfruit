@@ -19,7 +19,8 @@ module Grepfruit
       option :count, aliases: ["-c"], type: :flag, default: false, desc: "Show only counts, not match details"
 
       def call(path: ".", **options)
-        validate_options!(options)
+        error_exit("You must specify a regex pattern using the -r or --regex option.") unless options[:regex]
+        error_exit("Jobs must be at least 1") if options[:jobs] && options[:jobs].to_i < 1
 
         begin
           regex_pattern = Regexp.new(options[:regex])
@@ -41,16 +42,6 @@ module Grepfruit
       end
 
       private
-
-      def validate_options!(options)
-        error_exit("You must specify a regex pattern using the -r or --regex option.") unless options[:regex]
-
-        begin
-          Grepfruit::Search.validate_jobs!(options[:jobs]&.to_i)
-        rescue ArgumentError => e
-          error_exit(e.message)
-        end
-      end
 
       def error_exit(message)
         puts "Error: #{message}"

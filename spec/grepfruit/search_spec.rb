@@ -500,7 +500,7 @@ RSpec.describe Grepfruit::Search do
     context "when invalid jobs count is specified" do
       subject { `./exe/grepfruit search -r 'TODO' -j 0 ./spec/test_dataset` }
 
-      it { is_expected.to include("Error: jobs must be at least 1") }
+      it { is_expected.to include("Error: Jobs must be at least 1") }
     end
   end
 

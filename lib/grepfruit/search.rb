@@ -19,10 +19,6 @@ module Grepfruit
       raise ArgumentError, "jobs must be at least 1" if jobs && (!jobs.is_a?(Integer) || jobs < 1)
     end
 
-    def self.validate_jobs!(jobs)
-      raise ArgumentError, "jobs must be at least 1" if jobs && jobs < 1
-    end
-
     attr_reader :dir, :regex, :exclusions, :inclusions, :excluded_paths, :excluded_lines, :included_paths, :truncate, :search_hidden, :jobs, :json_output, :count_only
 
     def initialize(dir:, regex:, exclude:, include:, truncate:, search_hidden:, jobs:, json_output: false, count_only: false)
@@ -109,6 +105,7 @@ module Grepfruit
       end
 
       shutdown_workers(workers_and_ports.map(&:first))
+
       results
     end
 
