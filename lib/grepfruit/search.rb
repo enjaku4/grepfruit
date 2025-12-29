@@ -6,19 +6,6 @@ Warning[:experimental] = false
 
 module Grepfruit
   class Search
-    include Decorator
-
-    def self.validate_search_params!(regex:, path:, exclude:, include:, truncate:, search_hidden:, jobs:, count:)
-      raise ArgumentError, "regex is required" unless regex.is_a?(Regexp)
-      raise ArgumentError, "path must be a string" unless path.is_a?(String)
-      raise ArgumentError, "exclude must be an array" unless exclude.is_a?(Array)
-      raise ArgumentError, "include must be an array" unless include.is_a?(Array)
-      raise ArgumentError, "truncate must be a positive integer" if truncate && (!truncate.is_a?(Integer) || truncate <= 0)
-      raise ArgumentError, "search_hidden must be a boolean" unless [true, false].include?(search_hidden)
-      raise ArgumentError, "count must be a boolean" unless [true, false].include?(count)
-      raise ArgumentError, "jobs must be at least 1" if jobs && (!jobs.is_a?(Integer) || jobs < 1)
-    end
-
     attr_reader :dir, :regex, :exclusions, :inclusions, :excluded_paths, :excluded_lines, :included_paths, :truncate, :search_hidden, :jobs, :json_output, :count_only
 
     def initialize(dir:, regex:, exclude:, include:, truncate:, search_hidden:, jobs:, json_output: false, count_only: false)
@@ -35,19 +22,7 @@ module Grepfruit
       @count_only = count_only
     end
 
-    def run
-      validate_directory!
-      puts "Searching for #{regex.inspect} in #{dir.inspect}..." unless json_output
-
-      results = execute_search
-
-      display_final_results(results)
-    end
-
-    def execute
-      validate_directory!
-      build_result_hash(execute_search)
-    end
+    private
 
     def build_result_hash(results)
       result_hash = {
@@ -77,15 +52,6 @@ module Grepfruit
       result_hash
     end
 
-    private
-
-    def validate_directory!
-      return if File.exist?(dir)
-
-      puts "Error: Directory '#{dir}' does not exist."
-      exit 1
-    end
-
     def execute_search
       results = SearchResults.new
       workers_and_ports = Array.new(jobs) { create_persistent_worker }
@@ -107,16 +73,6 @@ module Grepfruit
       shutdown_workers(workers_and_ports.map(&:first))
 
       results
-    end
-
-    def display_final_results(results)
-      if json_output
-        display_json_results(build_result_hash(results))
-      else
-        display_results(results)
-      end
-
-      exit(results.match_count.positive? ? 1 : 0)
     end
 
     def create_persistent_worker
@@ -175,24 +131,6 @@ module Grepfruit
       end
     end
 
-    def process_worker_result(worker_result, results)
-      file_results, has_matches, match_count = worker_result
-
-      return false unless has_matches
-
-      results.add_match_count(match_count)
-      results.add_raw_matches(file_results)
-
-      unless json_output || count_only
-        colored_lines = file_results.map do |relative_path, line_num, line_content|
-          "#{cyan("#{relative_path}:#{line_num}")}: #{processed_line(line_content)}"
-        end
-        results.add_lines(colored_lines)
-      end
-
-      true
-    end
-
     def excluded_path?(path)
       rel_path = path.delete_prefix("#{dir}/")
 
@@ -206,6 +144,11 @@ module Grepfruit
         pattern = pattern_parts.join("/")
         File.fnmatch?(pattern, path, File::FNM_PATHNAME) || File.fnmatch?(pattern, File.basename(path))
       end
+    end
+
+    def processed_line(line)
+      stripped = line.strip
+      truncate && stripped.length > truncate ? "#{stripped[0...truncate]}..." : stripped
     end
   end
 end

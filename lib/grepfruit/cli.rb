@@ -28,7 +28,7 @@ module Grepfruit
           error_exit("Invalid regex pattern - #{e.message}")
         end
 
-        Grepfruit::Search.new(
+        Grepfruit::CliSearch.new(
           dir: path,
           regex: regex_pattern,
           exclude: options[:exclude] || [],
@@ -38,7 +38,7 @@ module Grepfruit
           jobs: options[:jobs]&.to_i,
           json_output: options[:json],
           count_only: options[:count]
-        ).run
+        ).execute
       end
 
       private

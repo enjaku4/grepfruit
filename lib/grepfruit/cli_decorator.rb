@@ -1,5 +1,5 @@
 module Grepfruit
-  module Decorator
+  module CliDecorator
     COLORS = { cyan: "\e[36m", red: "\e[31m", green: "\e[32m", reset: "\e[0m" }.freeze
 
     private
@@ -11,11 +11,6 @@ module Grepfruit
 
     def number_of_files(num) = "#{num} file#{'s' if num != 1}"
     def number_of_matches(num) = "#{num} match#{'es' if num != 1}"
-
-    def processed_line(line)
-      stripped = line.strip
-      truncate && stripped.length > truncate ? "#{stripped[0...truncate]}..." : stripped
-    end
 
     def display_results(results)
       puts "" if results.total_files.positive?
