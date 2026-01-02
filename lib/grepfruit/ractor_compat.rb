@@ -1,39 +1,39 @@
 module Grepfruit
   module RactorCompat
-    RUBY_4_OR_LATER = RUBY_VERSION >= "4.0"
+    module_function
 
-    def self.send_work(worker, data)
+    def send_work(worker, data)
       worker.send(data)
     end
 
-    if RUBY_4_OR_LATER
-      def self.create_worker(&)
+    if defined?(::Ractor::Port)
+      def create_worker(&)
         port = Ractor::Port.new
         worker = Ractor.new(port, &)
         [worker, port]
       end
 
-      def self.yield_result(port, data)
+      def yield_result(port, data)
         port << data
       end
 
-      def self.select_ready(workers_and_ports)
+      def select_ready(workers_and_ports)
         ports = workers_and_ports.values
         ready_port, result = Ractor.select(*ports)
         worker = workers_and_ports.key(ready_port)
         [worker, result]
       end
     else
-      def self.create_worker(&)
+      def create_worker(&)
         worker = Ractor.new(&)
         [worker, nil]
       end
 
-      def self.yield_result(_port, data)
+      def yield_result(_port, data)
         Ractor.yield(data)
       end
 
-      def self.select_ready(workers_and_ports)
+      def select_ready(workers_and_ports)
         workers = workers_and_ports.keys
         ready_worker, result = Ractor.select(*workers)
         [ready_worker, result]
