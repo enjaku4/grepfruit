@@ -29,15 +29,15 @@ module Grepfruit
         end
 
         Grepfruit::CliSearch.new(
-          dir: path,
+          path: path,
           regex: regex_pattern,
           exclude: options[:exclude] || [],
           include: options[:include] || [],
           truncate: options[:truncate]&.to_i,
           search_hidden: options[:search_hidden],
           jobs: options[:jobs]&.to_i,
-          json_output: options[:json],
-          count_only: options[:count]
+          json: options[:json],
+          count: options[:count]
         ).execute
       end
 

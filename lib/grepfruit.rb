@@ -17,15 +17,15 @@ module Grepfruit
     raise ArgumentError, "jobs must be at least 1" if jobs && (!jobs.is_a?(Integer) || jobs < 1)
 
     ProgrammaticSearch.new(
-      dir: path,
+      path: path,
       regex: regex,
       exclude: exclude,
       include: include,
       truncate: truncate,
       search_hidden: search_hidden,
       jobs: jobs,
-      json_output: false,
-      count_only: count
+      json: false,
+      count: count
     ).execute
   end
 end
