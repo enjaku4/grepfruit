@@ -156,6 +156,15 @@ This outputs a JSON response containing search metadata, summary statistics, and
 }
 ```
 
+### Count Only Mode
+
+Show only match counts without displaying the actual matches:
+
+```bash
+grepfruit search -r 'TODO' --count
+grepfruit search -r 'FIXME|TODO' -c -e 'vendor,node_modules'
+```
+
 ### Parallel Processing
 
 Grepfruit uses ractors for true parallel processing across CPU cores. Control the number of parallel workers:
@@ -189,7 +198,7 @@ result = Grepfruit.search(
 )
 ```
 
-Returns a hash:
+Returns a hash (note: when `count: true`, the `matches` key is omitted):
 
 ```rb
 {
