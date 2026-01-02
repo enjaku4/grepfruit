@@ -94,11 +94,11 @@ module Grepfruit
 
           file_path, pattern, exc_lines, base_path, count = work
           file_results, has_matches, match_count = [], false, 0
+          relative_path = file_path.delete_prefix("#{base_path}/")
 
           File.foreach(file_path).with_index do |line, line_num|
             next unless line.valid_encoding? && line.match?(pattern)
 
-            relative_path = file_path.delete_prefix("#{base_path}/")
             next if exc_lines.any? { "#{relative_path}:#{line_num + 1}".end_with?(_1.join("/")) }
 
             file_results << [relative_path, line_num + 1, line] unless count
