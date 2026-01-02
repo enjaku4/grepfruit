@@ -1,3 +1,9 @@
+## v3.2.0
+
+- Added programmatic API for use in Ruby applications
+- Added --count option to display only the count of matches
+- Added support for Ruby 4
+
 ## v3.1.3
 
 - Fixed race condition in worker shutdown

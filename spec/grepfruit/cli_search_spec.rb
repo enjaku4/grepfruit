@@ -1,7 +1,6 @@
-require "fileutils"
 require "json"
 
-RSpec.describe Grepfruit::Search do
+RSpec.describe Grepfruit::CliSearch do
   context "when no parameters are specified" do
     subject { `./exe/grepfruit 2>&1` }
 
@@ -278,7 +277,14 @@ RSpec.describe Grepfruit::Search do
     context "when invalid jobs count is specified" do
       subject { `./exe/grepfruit search -r 'TODO' -j 0 ./spec/test_dataset` }
 
-      it { is_expected.to include("Error: Number of jobs must be at least 1") }
+      it { is_expected.to include("Error: Jobs must be at least 1") }
+    end
+
+    context "when searching non-existent directory" do
+      subject { `./exe/grepfruit search -r 'TODO' ./nonexistent` }
+
+      it { is_expected.to include("Error: Directory") }
+      it { is_expected.to include("does not exist") }
     end
   end
 
@@ -297,6 +303,13 @@ RSpec.describe Grepfruit::Search do
       it { is_expected.to include("Searching for /TODO/ in") }
       it { is_expected.to include("16 matches found") }
       it { is_expected.to include("4 files checked") }
+    end
+
+    context "when jobs count exceeds number of files" do
+      subject { `./exe/grepfruit search -r 'TODO' -j 10 ./spec/test_dataset` }
+
+      it { is_expected.to include("4 files checked") }
+      it { is_expected.to include("16 matches found") }
     end
 
     context "when using command alias 's'" do
@@ -391,19 +404,54 @@ RSpec.describe Grepfruit::Search do
     end
   end
 
-  describe "edge cases" do
-    context "when searching non-existent directory" do
-      subject { `./exe/grepfruit search -r 'TODO' ./nonexistent` }
-
-      it { is_expected.to include("Error: Directory") }
-      it { is_expected.to include("does not exist") }
-    end
-
-    context "when jobs count exceeds number of files" do
-      subject { `./exe/grepfruit search -r 'TODO' -j 10 ./spec/test_dataset` }
+  describe "count mode" do
+    context "when --count flag is used with matches" do
+      subject { `./exe/grepfruit search -r 'TODO' --count ./spec/test_dataset` }
 
       it { is_expected.to include("4 files checked") }
       it { is_expected.to include("16 matches found") }
+      it { is_expected.to include("in 4 files") }
+      it { is_expected.not_to include("bar.txt:") }
+      it { is_expected.not_to include("TODO:") }
+      it { is_expected.not_to include("Matches:") }
+    end
+
+    context "when -c short flag is used" do
+      subject { `./exe/grepfruit search -r 'TODO' -c ./spec/test_dataset` }
+
+      it { is_expected.to include("4 files checked") }
+      it { is_expected.to include("16 matches found") }
+    end
+
+    context "when --count flag is used with no matches" do
+      subject { `./exe/grepfruit search -r 'NONEXISTENT' --count ./spec/test_dataset` }
+
+      it { is_expected.to include("4 files checked") }
+      it { is_expected.to include("no matches found") }
+    end
+
+    context "when --count is combined with --exclude" do
+      subject { `./exe/grepfruit search -r 'TODO' --count -e 'folder,bar.txt' ./spec/test_dataset` }
+
+      it { is_expected.to include("2 files checked") }
+      it { is_expected.to include("12 matches found") }
+    end
+
+    context "when --count is combined with --include" do
+      subject { `./exe/grepfruit search -r 'TODO' --count -i '*.py' ./spec/test_dataset` }
+
+      it { is_expected.to include("1 file checked") }
+      it { is_expected.to include("4 matches found") }
+    end
+
+    it "exits with code 1 when matches are found" do
+      system("./exe/grepfruit search -r 'TODO' --count ./spec/test_dataset > /dev/null")
+      expect($?.exitstatus).to eq(1)
+    end
+
+    it "exits with code 0 when no matches are found" do
+      system("./exe/grepfruit search -r 'NONEXISTENT' --count ./spec/test_dataset > /dev/null")
+      expect($?.exitstatus).to eq(0)
     end
   end
 end
