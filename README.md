@@ -7,8 +7,8 @@
 
 Grepfruit is a tool for searching regex patterns in files, with a CLI designed for CI/CD pipelines and a programmatic API for Ruby applications.
 
-<img width="933" height="221" alt="Screenshot 2025-10-15 at 13 28 06" src="https://github.com/user-attachments/assets/cad09b17-9b79-4377-8cf9-365108a96a5a" />
-<img width="709" height="586" alt="Screenshot 2025-10-15 at 13 29 01" src="https://github.com/user-attachments/assets/36664522-1eee-40bf-8f58-a2503668e1a4" />
+<img width="774" height="155" alt="Screenshot 2026-01-02 at 17 15 48" src="https://github.com/user-attachments/assets/550057e0-7783-4bd2-be9b-ce49f48bdc04" />
+<img width="598" height="484" alt="Screenshot 2026-01-02 at 17 16 52" src="https://github.com/user-attachments/assets/6eff05af-b58d-4e28-a496-343e243b79a2" />
 
 ## Table of Contents
 
