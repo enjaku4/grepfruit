@@ -18,11 +18,15 @@ module Grepfruit
       if results.match_count.zero?
         puts "#{number_of_files(results.total_files)} checked, #{green('no matches found')}"
       else
-        results.raw_matches.each do |line_info|
-          puts "#{cyan("#{line_info[0]}:#{line_info[1]}")}: #{processed_line(line_info[2])}"
+        unless count
+          puts "Matches:\n\n"
+          results.raw_matches.each do |line_info|
+            puts "#{cyan("#{line_info[0]}:#{line_info[1]}")}: #{processed_line(line_info[2])}"
+          end
+          puts ""
         end
 
-        puts "\n#{number_of_files(results.total_files)} checked, #{red("#{number_of_matches(results.match_count)} found in #{number_of_files(results.total_files_with_matches)}")}"
+        puts "#{number_of_files(results.total_files)} checked, #{red("#{number_of_matches(results.match_count)} found in #{number_of_files(results.total_files_with_matches)}")}"
       end
     end
 
