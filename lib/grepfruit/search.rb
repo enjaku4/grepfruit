@@ -13,8 +13,8 @@ module Grepfruit
       @regex = regex
       @exclusions = exclude
       @inclusions = include
-      @excluded_lines, @excluded_paths = exclude.map { _1.split("/") }.partition { _1.last.include?(":") }
-      @included_paths = include.map { _1.split("/") }
+      @excluded_lines, @excluded_paths = exclude.partition { _1.split("/").last.include?(":") }
+      @included_paths = include
       @truncate = truncate
       @search_hidden = search_hidden
       @jobs = jobs || Etc.nprocessors
@@ -99,7 +99,7 @@ module Grepfruit
           File.foreach(file_path).with_index do |line, line_num|
             next unless line.valid_encoding? && line.match?(pattern)
 
-            next if exc_lines.any? { "#{relative_path}:#{line_num + 1}".end_with?(_1.join("/")) }
+            next if exc_lines.any? { "#{relative_path}:#{line_num + 1}".end_with?(_1) }
 
             file_results << [relative_path, line_num + 1, line] unless count
             has_matches = true
@@ -151,8 +151,7 @@ module Grepfruit
     end
 
     def matches_pattern?(pattern_list, path)
-      pattern_list.any? do |pattern_parts|
-        pattern = pattern_parts.join("/")
+      pattern_list.any? do |pattern|
         File.fnmatch?(pattern, path, File::FNM_PATHNAME) || File.fnmatch?(pattern, File.basename(path))
       end
     end
