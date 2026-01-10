@@ -92,9 +92,8 @@ module Grepfruit
           work = Ractor.receive
           break if work == :quit
 
-          file_path, pattern, exc_lines, base_path, count = work
+          file_path, relative_path, pattern, exc_lines, count = work
           file_results, has_matches, match_count = [], false, 0
-          relative_path = file_path.delete_prefix("#{base_path}/")
 
           File.foreach(file_path).with_index do |line, line_num|
             next unless line.valid_encoding? && line.match?(pattern)
@@ -112,10 +111,10 @@ module Grepfruit
     end
 
     def assign_file_to_worker(worker, port, file_enumerator, active_workers, results)
-      file_path = get_next_file(file_enumerator)
+      file_path, rel_path = get_next_file(file_enumerator)
       return unless file_path
 
-      RactorCompat.send_work(worker, [file_path, regex, excluded_lines, path, count])
+      RactorCompat.send_work(worker, [file_path, rel_path, regex, excluded_lines, count])
       active_workers[worker] = port
       results.total_files += 1
     end
@@ -133,17 +132,17 @@ module Grepfruit
     def create_file_enumerator
       Enumerator.new do |yielder|
         Find.find(path) do |file_path|
-          Find.prune if excluded_path?(file_path)
+          rel_path = file_path.delete_prefix("#{path}/")
+          Find.prune if excluded_path?(file_path, rel_path)
 
           next unless File.file?(file_path)
 
-          yielder << file_path
+          yielder << [file_path, rel_path]
         end
       end
     end
 
-    def excluded_path?(file_path)
-      rel_path = file_path.delete_prefix("#{path}/")
+    def excluded_path?(file_path, rel_path)
 
       (File.file?(file_path) && included_paths.any? && !matches_pattern?(included_paths, rel_path)) ||
         matches_pattern?(excluded_paths, rel_path) ||
