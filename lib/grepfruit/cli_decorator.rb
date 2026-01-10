@@ -1,3 +1,5 @@
+require "json"
+
 module Grepfruit
   module CliDecorator
     COLORS = { cyan: "\e[36m", red: "\e[31m", green: "\e[32m", reset: "\e[0m" }.freeze
@@ -31,8 +33,6 @@ module Grepfruit
     end
 
     def display_json_results(result_hash)
-      require "json"
-
       result_hash[:search][:pattern] = result_hash[:search][:pattern].inspect
       result_hash[:search][:timestamp] = Time.now.strftime("%Y-%m-%dT%H:%M:%S%z")
 
