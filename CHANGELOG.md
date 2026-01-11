@@ -1,3 +1,8 @@
+## v3.2.1
+
+- Skip unreadable files instead of crashing
+- Minor internal optimizations
+
 ## v3.2.0
 
 - Added programmatic API for use in Ruby applications
