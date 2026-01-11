@@ -135,7 +135,7 @@ module Grepfruit
           rel_path = file_path.delete_prefix("#{path}/")
           Find.prune if excluded_path?(file_path, rel_path)
 
-          next unless File.file?(file_path)
+          next unless File.file?(file_path) && File.readable?(file_path)
 
           yielder << [file_path, rel_path]
         end
