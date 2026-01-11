@@ -143,7 +143,6 @@ module Grepfruit
     end
 
     def excluded_path?(file_path, rel_path)
-
       (File.file?(file_path) && included_paths.any? && !matches_pattern?(included_paths, rel_path)) ||
         matches_pattern?(excluded_paths, rel_path) ||
         (!search_hidden && File.basename(file_path).start_with?("."))
