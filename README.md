@@ -1,4 +1,4 @@
-# Grepfruit: Text Search Tool
+# Grepfruit: Regex Search in Files
 
 [![Gem Version](https://badge.fury.io/rb/grepfruit.svg)](http://badge.fury.io/rb/grepfruit)
 [![Downloads](https://img.shields.io/gem/dt/grepfruit.svg)](https://rubygems.org/gems/grepfruit)
