@@ -5,20 +5,14 @@
 [![Github Actions badge](https://github.com/enjaku4/grepfruit/actions/workflows/ci.yml/badge.svg)](https://github.com/enjaku4/grepfruit/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/enjaku4/grepfruit.svg)](LICENSE)
 
-Grepfruit is a tool for searching regex patterns in files, with a CLI designed for CI/CD pipelines and a programmatic API for Ruby applications.
-
-<img width="774" height="155" alt="Screenshot 2026-01-02 at 17 15 48" src="https://github.com/user-attachments/assets/550057e0-7783-4bd2-be9b-ce49f48bdc04" />
-<img width="598" height="484" alt="Screenshot 2026-01-02 at 17 16 52" src="https://github.com/user-attachments/assets/6eff05af-b58d-4e28-a496-343e243b79a2" />
+Grepfruit is a Ruby gem for regex pattern searching, offering both a programmatic API and a CI/CD-friendly CLI.
 
 ## Table of Contents
 
 **Gem Usage:**
   - [Installation](#installation)
-  - [Basic Usage](#basic-usage)
-  - [Command Line Options](#command-line-options)
-  - [Usage Examples](#usage-examples)
-  - [Exit Status](#exit-status)
   - [Programmatic API](#programmatic-api)
+  - [CLI](#cli)
 
 **Community Resources:**
   - [Getting Help and Contributing](#getting-help-and-contributing)
@@ -33,7 +27,48 @@ Install the gem:
 gem install grepfruit
 ```
 
-## Basic Usage
+## Programmatic API
+
+Use Grepfruit directly in Ruby applications:
+
+```rb
+result = Grepfruit.search(
+  regex: /TODO|FIXME/,
+  path: "app",
+  exclude: ["tmp", "vendor"],
+  include: ["*.rb"],
+  truncate: 80,
+  search_hidden: false,
+  jobs: 4,
+  count: false
+)
+```
+
+Returns a hash (when `count: true`, the `matches` key is omitted):
+
+```rb
+{
+  search: {
+    pattern: /TODO|FIXME/,
+    directory: "/path/to/app",
+    exclusions: ["tmp", "vendor"],
+    inclusions: ["*.rb"]
+  },
+  summary: {
+    files_checked: 42,
+    files_with_matches: 8,
+    total_matches: 23
+  },
+  matches: [
+    { file: "models/user.rb", line: 15, content: "# TODO: add validation" },
+    # ...
+  ]
+}
+```
+
+All keyword arguments correspond to their CLI flag counterparts.
+
+## CLI
 
 Search for regex patterns within files in a specified directory:
 
@@ -49,7 +84,7 @@ grepfruit s [options] [PATH]
 
 If no PATH is specified, Grepfruit searches the current directory.
 
-## Command Line Options
+### Command Line Options
 
 | Option | Description |
 |--------|-------------|
@@ -62,9 +97,9 @@ If no PATH is specified, Grepfruit searches the current directory.
 | `--search-hidden` | Include hidden files and directories in search |
 | `--json` | Output results in JSON format |
 
-## Usage Examples
+### Usage Examples
 
-### Basic Pattern Search
+**Basic Pattern Search**
 
 Search for `TODO` comments in the current directory:
 
@@ -72,7 +107,7 @@ Search for `TODO` comments in the current directory:
 grepfruit search -r 'TODO'
 ```
 
-### Excluding Directories
+**Excluding Directories**
 
 Search for `TODO` patterns while excluding common build and dependency directories:
 
@@ -80,7 +115,7 @@ Search for `TODO` patterns while excluding common build and dependency directori
 grepfruit search -r 'TODO' -e 'log,tmp,vendor,node_modules,assets'
 ```
 
-### Multiple Pattern Search Excluding Both Directories and Files
+**Multiple Pattern Search Excluding Both Directories and Files**
 
 Search for both `FIXME` and `TODO` comments in a specific directory:
 
@@ -88,7 +123,7 @@ Search for both `FIXME` and `TODO` comments in a specific directory:
 grepfruit search -r 'FIXME|TODO' -e 'bin,*.md,tmp/log,Gemfile.lock' dev/my_app
 ```
 
-### Line-Specific Exclusion
+**Line-Specific Exclusion**
 
 Exclude specific lines from search results:
 
@@ -96,7 +131,7 @@ Exclude specific lines from search results:
 grepfruit search -r 'FIXME|TODO' -e 'README.md:18'
 ```
 
-### Including Specific File Types
+**Including Specific File Types**
 
 Search only in specific file types using patterns:
 
@@ -105,7 +140,7 @@ grepfruit search -r 'TODO' -i '*.rb,*.js'
 grepfruit search -r 'FIXME' -i '*.py'
 ```
 
-### Output Truncation
+**Output Truncation**
 
 Limit output length for cleaner results:
 
@@ -113,7 +148,7 @@ Limit output length for cleaner results:
 grepfruit search -r 'FIXME|TODO' -t 50
 ```
 
-### Including Hidden Files
+**Including Hidden Files**
 
 Search hidden files and directories:
 
@@ -121,7 +156,7 @@ Search hidden files and directories:
 grepfruit search -r 'FIXME|TODO' --search-hidden
 ```
 
-### JSON Output
+**JSON Output**
 
 Get structured JSON output:
 
@@ -156,7 +191,7 @@ This outputs a JSON response containing search metadata, summary statistics, and
 }
 ```
 
-### Count Only Mode
+**Count Only Mode**
 
 Show only match counts without displaying the actual matches:
 
@@ -165,7 +200,7 @@ grepfruit search -r 'TODO' --count
 grepfruit search -r 'FIXME|TODO' -c -e 'vendor,node_modules'
 ```
 
-### Parallel Processing
+**Parallel Processing**
 
 Grepfruit uses ractors for true parallel processing across CPU cores. Control the number of parallel workers:
 
@@ -174,53 +209,12 @@ grepfruit search -r 'TODO' -j 8  # Use 8 parallel workers
 grepfruit search -r 'TODO' -j 1  # Sequential processing
 ```
 
-## Exit Status
+### Exit Status
 
 Grepfruit returns meaningful exit codes for CI/CD integration:
 
-- **Exit code 0**: No matches found (ideal for quality gates - code is clean)
-- **Exit code 1**: Pattern matches were found (CI should fail - issues detected)
-
-## Programmatic API
-
-Use Grepfruit directly in Ruby applications:
-
-```rb
-result = Grepfruit.search(
-  regex: /TODO|FIXME/,
-  path: "app",
-  exclude: ["tmp", "vendor"],
-  include: ["*.rb"],
-  truncate: 80,
-  search_hidden: false,
-  jobs: 4,
-  count: false
-)
-```
-
-Returns a hash (note: when `count: true`, the `matches` key is omitted):
-
-```rb
-{
-  search: {
-    pattern: /TODO|FIXME/,
-    directory: "/path/to/app",
-    exclusions: ["tmp", "vendor"],
-    inclusions: ["*.rb"]
-  },
-  summary: {
-    files_checked: 42,
-    files_with_matches: 8,
-    total_matches: 23
-  },
-  matches: [
-    { file: "models/user.rb", line: 15, content: "# TODO: add validation" },
-    # ...
-  ]
-}
-```
-
-All keyword arguments correspond to their CLI flag counterparts.
+- **Exit code 0**: No matches found (useful for quality gates)
+- **Exit code 1**: Pattern matches were found (indicates issues)
 
 ## Getting Help and Contributing
 
