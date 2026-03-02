@@ -219,7 +219,7 @@ Grepfruit returns meaningful exit codes for CI/CD integration:
 ## Getting Help and Contributing
 
 ### Getting Help
-Have a question or need assistance? Open a discussion in our [discussions section](https://github.com/enjaku4/grepfruit/discussions) for:
+Have a question or need assistance? Open a discussion in the [discussions section](https://github.com/enjaku4/grepfruit/discussions) for:
 - Usage questions
 - Implementation guidance
 - Feature suggestions
@@ -234,7 +234,7 @@ Found a bug? Please [create an issue](https://github.com/enjaku4/grepfruit/issue
 Ready to contribute? You can:
 - Fix bugs by submitting pull requests
 - Improve documentation
-- Add new features (please discuss first in our [discussions section](https://github.com/enjaku4/grepfruit/discussions))
+- Add new features (please discuss first in the [discussions section](https://github.com/enjaku4/grepfruit/discussions))
 
 Before contributing, please read the [contributing guidelines](https://github.com/enjaku4/grepfruit/blob/master/CONTRIBUTING.md)
 
