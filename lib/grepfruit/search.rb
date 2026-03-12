@@ -132,17 +132,19 @@ module Grepfruit
     def create_file_enumerator
       Enumerator.new do |yielder|
         Find.find(path) do |file_path|
-          Find.prune if excluded_path?(file_path, file_path.delete_prefix("#{path}/"))
+          is_file = File.file?(file_path)
 
-          next unless File.file?(file_path) && File.readable?(file_path)
+          Find.prune if excluded_path?(is_file, file_path, file_path.delete_prefix("#{path}/"))
+
+          next unless is_file && File.readable?(file_path)
 
           yielder << file_path
         end
       end
     end
 
-    def excluded_path?(file_path, rel_path)
-      (File.file?(file_path) && included_paths.any? && !matches_pattern?(included_paths, rel_path)) ||
+    def excluded_path?(is_file, file_path, rel_path)
+      (is_file && included_paths.any? && !matches_pattern?(included_paths, rel_path)) ||
         matches_pattern?(excluded_paths, rel_path) ||
         (!search_hidden && File.basename(file_path).start_with?("."))
     end
