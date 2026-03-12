@@ -1,6 +1,7 @@
 ## v4.0.0
 
-- Fixed single-file search displaying absolute path instead of relative in results
+- Match results now always contain absolute file paths
+- Renamed `directory` key to `path` in programmatic API search results
 - Minor performance improvements
 - Dropped support for Ruby 3.2
 
