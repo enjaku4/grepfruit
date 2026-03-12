@@ -6,7 +6,7 @@ Warning[:experimental] = false
 
 module Grepfruit
   class Search
-    attr_reader :path, :regex, :exclusions, :inclusions, :excluded_paths, :excluded_lines, :included_paths, :truncate, :search_hidden, :jobs, :json, :count
+    attr_reader :path, :regex, :exclusions, :inclusions, :excluded_paths, :excluded_lines, :truncate, :search_hidden, :jobs, :json, :count
 
     def initialize(path:, regex:, exclude:, include:, truncate:, search_hidden:, jobs:, json: false, count: false)
       @path = File.expand_path(path)
@@ -14,7 +14,6 @@ module Grepfruit
       @exclusions = exclude
       @inclusions = include
       @excluded_lines, @excluded_paths = exclude.partition { _1.split("/").last.include?(":") }
-      @included_paths = include
       @truncate = truncate
       @search_hidden = search_hidden
       @jobs = jobs || Etc.nprocessors
@@ -28,9 +27,9 @@ module Grepfruit
       result_hash = {
         search: {
           pattern: regex,
-          path: path,
-          exclusions: exclusions,
-          inclusions: inclusions
+          path:,
+          exclusions:,
+          inclusions:
         },
         summary: {
           files_checked: results.total_files,
@@ -40,9 +39,9 @@ module Grepfruit
       }
 
       unless count
-        result_hash[:matches] = results.raw_matches.map do |relative_path, line_num, line_content|
+        result_hash[:matches] = results.raw_matches.map do |file_path, line_num, line_content|
           {
-            file: relative_path,
+            file: file_path,
             line: line_num,
             content: processed_line(line_content)
           }
@@ -144,7 +143,7 @@ module Grepfruit
     end
 
     def excluded_path?(is_file, file_path, rel_path)
-      (is_file && included_paths.any? && !matches_pattern?(included_paths, rel_path)) ||
+      (is_file && inclusions.any? && !matches_pattern?(inclusions, rel_path)) ||
         matches_pattern?(excluded_paths, rel_path) ||
         (!search_hidden && File.basename(file_path).start_with?("."))
     end

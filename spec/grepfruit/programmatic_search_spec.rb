@@ -240,10 +240,10 @@ RSpec.describe Grepfruit::ProgrammaticSearch do
         end.to raise_error(ArgumentError, "count must be a boolean")
       end
 
-      it "raises ArgumentError when directory does not exist" do
+      it "raises ArgumentError when path does not exist" do
         expect do
           Grepfruit.search(path: "./nonexistent", regex: /TODO/)
-        end.to raise_error(ArgumentError, /directory .* does not exist/)
+        end.to raise_error(ArgumentError, /path .* does not exist/)
       end
     end
   end

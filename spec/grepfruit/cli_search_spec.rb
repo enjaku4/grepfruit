@@ -280,10 +280,10 @@ RSpec.describe Grepfruit::CliSearch do
       it { is_expected.to include("Error: Jobs must be at least 1") }
     end
 
-    context "when searching non-existent directory" do
+    context "when searching non-existent path" do
       subject { `./exe/grepfruit search -r 'TODO' ./nonexistent` }
 
-      it { is_expected.to include("Error: Directory") }
+      it { is_expected.to include("Error: Path") }
       it { is_expected.to include("does not exist") }
     end
   end
