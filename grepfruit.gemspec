@@ -16,7 +16,7 @@ Gem::Specification.new do |spec|
   spec.summary = "Tool for searching regex patterns in files"
   spec.description = "A tool for searching regex patterns in files with a programmatic API and a CI/CD-friendly CLI"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.2", "< 4.1"
+  spec.required_ruby_version = ">= 3.3", "< 4.1"
 
   spec.files = [
     "grepfruit.gemspec", "README.md", "CHANGELOG.md", "LICENSE.txt"
