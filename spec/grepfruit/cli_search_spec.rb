@@ -328,7 +328,7 @@ RSpec.describe Grepfruit::CliSearch do
         json = JSON.parse(subject)
         expect(json["search"]).to include(
           "pattern" => "/TODO/",
-          "directory" => File.expand_path("./spec/test_dataset")
+          "path" => File.expand_path("./spec/test_dataset")
         )
         expect(json["search"]["timestamp"]).to match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
       end
