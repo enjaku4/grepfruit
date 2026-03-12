@@ -1,3 +1,8 @@
+## v3.2.2
+
+- Fixed single-file search displaying absolute paths instead of filenames in results
+- Minor performance improvements
+
 ## v3.2.1
 
 - Skip unreadable files instead of crashing
