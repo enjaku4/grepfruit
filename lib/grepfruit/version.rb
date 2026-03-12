@@ -1,3 +1,3 @@
 module Grepfruit
-  VERSION = "3.2.2".freeze
+  VERSION = "4.0.0".freeze
 end
