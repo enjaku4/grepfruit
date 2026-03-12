@@ -1,7 +1,8 @@
-## v3.2.2
+## v4.0.0
 
-- Fixed single-file search displaying absolute paths instead of filenames in results
+- Fixed single-file search displaying absolute path instead of relative in results
 - Minor performance improvements
+- Dropped support for Ruby 3.2
 
 ## v3.2.1
 
