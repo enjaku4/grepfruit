@@ -50,7 +50,7 @@ Returns a hash (when `count: true`, the `matches` key is omitted):
 {
   search: {
     pattern: /TODO|FIXME/,
-    directory: "/path/to/app",
+    path: "/path/to/app",
     exclusions: ["tmp", "vendor"],
     inclusions: ["*.rb"]
   },
@@ -60,7 +60,7 @@ Returns a hash (when `count: true`, the `matches` key is omitted):
     total_matches: 23
   },
   matches: [
-    { file: "models/user.rb", line: 15, content: "# TODO: add validation" },
+    { file: "/path/to/app/models/user.rb", line: 15, content: "# TODO: add validation" },
     # ...
   ]
 }
@@ -170,7 +170,7 @@ This outputs a JSON response containing search metadata, summary statistics, and
 {
   "search": {
     "pattern": "/TODO/",
-    "directory": "/path/to/search",
+    "path": "/path/to/search",
     "exclusions": ["node_modules"],
     "inclusions": ["*.rb", "*.js"],
     "timestamp": "2025-01-16T10:30:00+00:00"
@@ -182,7 +182,7 @@ This outputs a JSON response containing search metadata, summary statistics, and
   },
   "matches": [
     {
-      "file": "src/main.js",
+      "file": "/path/to/search/src/main.js",
       "line": 15,
       "content": "// TODO: Implement error handling"
     },

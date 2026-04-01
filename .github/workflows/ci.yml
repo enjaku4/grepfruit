@@ -15,7 +15,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.2
+          ruby-version: 3.3
       - name: Bundle install
         run: bundle install
       - name: Run Todo Search
@@ -33,7 +33,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.2
+          ruby-version: 3.3
       - name: Bundle install
         run: bundle install
       - name: Run RuboCop
@@ -48,7 +48,6 @@ jobs:
     strategy:
       matrix:
         ruby:
-          - "3.2"
           - "3.3"
           - "3.4"
           - "4.0"

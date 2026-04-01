@@ -21,7 +21,7 @@ RSpec.describe Grepfruit::ProgrammaticSearch do
       )
 
       expect(result[:search][:pattern]).to eq(/TODO/)
-      expect(result[:search][:directory]).to eq(File.expand_path("./spec/test_dataset"))
+      expect(result[:search][:path]).to eq(File.expand_path("./spec/test_dataset"))
     end
 
     it "includes correct summary counts" do
@@ -124,6 +124,23 @@ RSpec.describe Grepfruit::ProgrammaticSearch do
       expect(result[:summary][:files_with_matches]).to eq(0)
     end
 
+    it "returns correct results when searching a single file" do
+      result = Grepfruit.search(
+        path: "./spec/test_dataset/folder/bad.yml",
+        regex: /TODO/
+      )
+
+      expect(result[:search][:path]).to eq(File.expand_path("./spec/test_dataset/folder/bad.yml"))
+
+      expect(result[:summary][:files_checked]).to eq(1)
+      expect(result[:summary][:files_with_matches]).to eq(1)
+      expect(result[:summary][:total_matches]).to eq(1)
+
+      expect(result[:matches][0][:file]).to eq(File.expand_path("./spec/test_dataset/folder/bad.yml"))
+      expect(result[:matches][0][:line]).to eq(21)
+      expect(result[:matches][0][:content]).to eq("# TODO: Add configuration for cache settings")
+    end
+
     describe "count mode" do
       it "returns result without matches key when count is true" do
         result = Grepfruit.search(
@@ -146,7 +163,7 @@ RSpec.describe Grepfruit::ProgrammaticSearch do
         )
 
         expect(result[:search][:pattern]).to eq(/TODO/)
-        expect(result[:search][:directory]).to eq(File.expand_path("./spec/test_dataset"))
+        expect(result[:search][:path]).to eq(File.expand_path("./spec/test_dataset"))
       end
 
       it "returns result without matches key with count when no matches found" do
@@ -223,10 +240,10 @@ RSpec.describe Grepfruit::ProgrammaticSearch do
         end.to raise_error(ArgumentError, "count must be a boolean")
       end
 
-      it "raises ArgumentError when directory does not exist" do
+      it "raises ArgumentError when path does not exist" do
         expect do
           Grepfruit.search(path: "./nonexistent", regex: /TODO/)
-        end.to raise_error(ArgumentError, /directory .* does not exist/)
+        end.to raise_error(ArgumentError, /path .* does not exist/)
       end
     end
   end

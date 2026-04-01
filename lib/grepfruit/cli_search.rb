@@ -5,7 +5,7 @@ module Grepfruit
     include Grepfruit::CliDecorator
 
     def execute
-      puts "Error: Directory '#{path}' does not exist." and exit 1 unless File.exist?(path)
+      puts "Error: Path '#{path}' does not exist." and exit 1 unless File.exist?(path)
 
       puts "Searching for #{regex.inspect} in #{path.inspect}..." unless json
 

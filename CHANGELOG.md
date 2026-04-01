@@ -1,3 +1,10 @@
+## v4.0.0
+
+- Match results now always contain absolute file paths
+- Renamed `directory` key to `path` in programmatic API search results
+- Minor performance improvements
+- Dropped support for Ruby 3.2
+
 ## v3.2.1
 
 - Skip unreadable files instead of crashing
