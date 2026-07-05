@@ -65,7 +65,9 @@ module Grepfruit
         ready_worker, worker_result = RactorCompat.select_ready(active_workers)
         port = active_workers.delete(ready_worker)
 
-        results.increment_files_with_matches if process_worker_result(worker_result, results)
+        has_matches = process_worker_result(worker_result, results)
+        results.increment_files_with_matches if has_matches
+        emit_file_progress(has_matches)
         assign_file_to_worker(ready_worker, port, file_enumerator, active_workers, results)
       end
 
@@ -84,6 +86,8 @@ module Grepfruit
 
       true
     end
+
+    def emit_file_progress(_has_matches); end
 
     def create_persistent_worker
       RactorCompat.create_worker do |port|
