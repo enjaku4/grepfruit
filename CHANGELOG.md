@@ -1,3 +1,7 @@
+## v4.0.1
+
+- Restored accidentally removed CLI progress indicator
+
 ## v4.0.0
 
 - Match results now always contain absolute file paths
