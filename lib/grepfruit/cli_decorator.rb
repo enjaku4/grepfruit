@@ -11,11 +11,18 @@ module Grepfruit
     def red(text) = colorize(text, :red)
     def cyan(text) = colorize(text, :cyan)
 
+    def print_file_progress_dot(has_matches)
+      print(has_matches ? red(".") : green("."))
+    end
+
     def number_of_files(num) = "#{num} file#{'s' if num != 1}"
     def number_of_matches(num) = "#{num} match#{'es' if num != 1}"
 
     def display_results(results)
-      puts "" if results.total_files.positive?
+      if results.total_files.positive?
+        puts
+        puts
+      end
 
       if results.match_count.zero?
         puts "#{number_of_files(results.total_files)} checked, #{green('no matches found')}"

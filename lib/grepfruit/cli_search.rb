@@ -7,7 +7,10 @@ module Grepfruit
     def execute
       puts "Error: Path '#{path}' does not exist." and exit 1 unless File.exist?(path)
 
-      puts "Searching for #{regex.inspect} in #{path.inspect}..." unless json
+      unless json
+        puts "Searching for #{regex.inspect} in #{path.inspect}..."
+        puts
+      end
 
       results = execute_search
 
@@ -18,6 +21,14 @@ module Grepfruit
       end
 
       exit(results.match_count.positive? ? 1 : 0)
+    end
+
+    private
+
+    def emit_file_progress(has_matches)
+      return if json
+
+      print_file_progress_dot(has_matches)
     end
   end
 end

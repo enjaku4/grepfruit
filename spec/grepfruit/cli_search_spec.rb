@@ -16,6 +16,10 @@ RSpec.describe Grepfruit::CliSearch do
       it { is_expected.to include("16 matches found") }
       it { is_expected.to include("in 4 files") }
       it { is_expected.not_to include(".hidden") }
+
+      it "prints a red progress dot for each file with matches" do
+        expect(subject.scan("\e[31m.\e[0m").size).to eq(4)
+      end
     end
 
     context "when no path specified (defaults to current directory)" do
@@ -30,6 +34,10 @@ RSpec.describe Grepfruit::CliSearch do
 
       it { is_expected.to include("4 files checked") }
       it { is_expected.to include("no matches found") }
+
+      it "prints a green progress dot for each checked file" do
+        expect(subject.scan("\e[32m.\e[0m").size).to eq(4)
+      end
     end
   end
 
@@ -323,6 +331,10 @@ RSpec.describe Grepfruit::CliSearch do
   describe "JSON output" do
     context "when --json flag is used with matches found" do
       subject { `./exe/grepfruit search -r 'TODO' --json ./spec/test_dataset` }
+
+      it "does not print progress dots" do
+        expect(subject).not_to match(/\e\[(31|32)m\.\e\[0m/)
+      end
 
       it "includes search metadata" do
         json = JSON.parse(subject)
