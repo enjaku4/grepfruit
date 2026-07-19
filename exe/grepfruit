@@ -2,6 +2,8 @@
 
 RubyVM::YJIT.enable if defined?(RubyVM::YJIT) && RubyVM::YJIT.respond_to?(:enable)
 
+Warning[:experimental] = false
+
 $LOAD_PATH.unshift("#{__dir__}/../lib")
 
 require "grepfruit"
