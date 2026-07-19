@@ -1,6 +1,7 @@
 ## v4.0.2
 
 - Fixed searches silently checking no files when the search path itself was hidden or matched an exclusion
+- Fixed a crash backtrace being printed after the error message when the search path does not exist
 
 ## v4.0.1
 
