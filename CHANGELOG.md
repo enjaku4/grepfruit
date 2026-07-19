@@ -2,6 +2,7 @@
 
 - Fixed searches silently checking no files when the search path itself was hidden or matched an exclusion
 - Fixed a crash backtrace being printed after the error message when the search path does not exist
+- Fixed the whole search crashing when a file is deleted or becomes unreadable mid-search
 
 ## v4.0.1
 
