@@ -96,14 +96,18 @@ module Grepfruit
           file_path, pattern, exc_lines, count = work
           file_results, has_matches, match_count = [], false, 0
 
-          File.foreach(file_path).with_index do |line, line_num|
-            next unless line.valid_encoding? && line.match?(pattern)
+          begin
+            File.foreach(file_path).with_index do |line, line_num|
+              next unless line.valid_encoding? && line.match?(pattern)
 
-            next if exc_lines.any? { "#{file_path}:#{line_num + 1}".end_with?(_1) }
+              next if exc_lines.any? { "#{file_path}:#{line_num + 1}".end_with?(_1) }
 
-            file_results << [file_path, line_num + 1, line] unless count
-            has_matches = true
-            match_count += 1
+              file_results << [file_path, line_num + 1, line] unless count
+              has_matches = true
+              match_count += 1
+            end
+          rescue Errno::ENOENT, Errno::EACCES, Errno::EISDIR
+            file_results, has_matches, match_count = [], false, 0
           end
 
           RactorCompat.yield_result(port, [file_results, has_matches, match_count])
