@@ -2,8 +2,6 @@ require "find"
 require "etc"
 require_relative "ractor_compat"
 
-Warning[:experimental] = false
-
 module Grepfruit
   class Search
     attr_reader :path, :regex, :exclusions, :inclusions, :excluded_paths, :excluded_lines, :truncate, :search_hidden, :jobs, :json, :count
