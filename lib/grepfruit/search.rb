@@ -2,8 +2,6 @@ require "find"
 require "etc"
 require_relative "ractor_compat"
 
-Warning[:experimental] = false
-
 module Grepfruit
   class Search
     attr_reader :path, :regex, :exclusions, :inclusions, :excluded_paths, :excluded_lines, :truncate, :search_hidden, :jobs, :json, :count
@@ -98,14 +96,18 @@ module Grepfruit
           file_path, pattern, exc_lines, count = work
           file_results, has_matches, match_count = [], false, 0
 
-          File.foreach(file_path).with_index do |line, line_num|
-            next unless line.valid_encoding? && line.match?(pattern)
+          begin
+            File.foreach(file_path).with_index do |line, line_num|
+              next unless line.valid_encoding? && line.match?(pattern)
 
-            next if exc_lines.any? { "#{file_path}:#{line_num + 1}".end_with?(_1) }
+              next if exc_lines.any? { "#{file_path}:#{line_num + 1}".end_with?(_1) }
 
-            file_results << [file_path, line_num + 1, line] unless count
-            has_matches = true
-            match_count += 1
+              file_results << [file_path, line_num + 1, line] unless count
+              has_matches = true
+              match_count += 1
+            end
+          rescue Errno::ENOENT, Errno::EACCES, Errno::EISDIR
+            file_results, has_matches, match_count = [], false, 0
           end
 
           RactorCompat.yield_result(port, [file_results, has_matches, match_count])
@@ -137,7 +139,7 @@ module Grepfruit
         Find.find(path) do |file_path|
           is_file = File.file?(file_path)
 
-          Find.prune if excluded_path?(is_file, file_path, file_path.delete_prefix("#{path}/"))
+          Find.prune if file_path != path && excluded_path?(is_file, file_path, file_path.delete_prefix("#{path}/"))
 
           next unless is_file && File.readable?(file_path)
 
