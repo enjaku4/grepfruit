@@ -137,7 +137,7 @@ module Grepfruit
         Find.find(path) do |file_path|
           is_file = File.file?(file_path)
 
-          Find.prune if excluded_path?(is_file, file_path, file_path.delete_prefix("#{path}/"))
+          Find.prune if file_path != path && excluded_path?(is_file, file_path, file_path.delete_prefix("#{path}/"))
 
           next unless is_file && File.readable?(file_path)
 

@@ -103,6 +103,26 @@ RSpec.describe Grepfruit::ProgrammaticSearch do
       expect(result_with_hidden[:summary][:total_matches]).to be > result_without_hidden[:summary][:total_matches]
     end
 
+    it "searches a hidden file when it is the explicit target" do
+      result = Grepfruit.search(
+        path: "./spec/test_dataset/.hidden",
+        regex: /TODO/
+      )
+
+      expect(result[:summary][:files_checked]).to eq(1)
+      expect(result[:summary][:total_matches]).to be > 0
+    end
+
+    it "does not apply exclusions to the search root itself" do
+      result = Grepfruit.search(
+        path: "./spec/test_dataset",
+        regex: /TODO/,
+        exclude: ["test_dataset"]
+      )
+
+      expect(result[:summary][:files_checked]).to eq(4)
+    end
+
     it "respects jobs option" do
       result = Grepfruit.search(
         path: "./spec/test_dataset",
