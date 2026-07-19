@@ -289,10 +289,16 @@ RSpec.describe Grepfruit::CliSearch do
     end
 
     context "when searching non-existent path" do
-      subject { `./exe/grepfruit search -r 'TODO' ./nonexistent` }
+      subject { `./exe/grepfruit search -r 'TODO' ./nonexistent 2>&1` }
 
       it { is_expected.to include("Error: Path") }
       it { is_expected.to include("does not exist") }
+
+      it "exits with status 1 without searching" do
+        expect(subject).not_to include("Errno::ENOENT")
+        expect(subject).not_to include("Searching for")
+        expect($?.exitstatus).to eq(1)
+      end
     end
   end
 
