@@ -1,3 +1,7 @@
+## v4.0.2
+
+- Fixed searches silently checking no files when the search path itself was hidden or matched an exclusion
+
 ## v4.0.1
 
 - Restored accidentally removed CLI progress indicator
