@@ -4,19 +4,24 @@ require_relative "ractor_compat"
 
 module Grepfruit
   class Search
-    attr_reader :path, :regex, :exclusions, :inclusions, :excluded_paths, :excluded_lines, :truncate, :search_hidden, :jobs, :json, :count
+    attr_reader :path, :regex, :exclusions, :inclusions, :excluded_paths, :excluded_lines, :truncate, :search_hidden, :jobs, :json, :count, :relative_paths
 
-    def initialize(path:, regex:, exclude:, include:, truncate:, search_hidden:, jobs:, json: false, count: false)
+    def initialize(path:, regex:, exclude:, include:, truncate:, search_hidden:, jobs:, json: false, count: false, relative_paths: false)
       @path = File.expand_path(path)
       @regex = regex
       @exclusions = exclude
       @inclusions = include
-      @excluded_lines, @excluded_paths = exclude.partition { _1.split("/").last.include?(":") }
+      line_exclusions, @excluded_paths = exclude.partition { _1.split("/").last.include?(":") }
+      @excluded_lines = line_exclusions.map do |exclusion|
+        pattern, _, line = exclusion.rpartition(":")
+        [pattern, line.to_i]
+      end
       @truncate = truncate
       @search_hidden = search_hidden
       @jobs = jobs || Etc.nprocessors
       @json = json
       @count = count
+      @relative_paths = relative_paths
     end
 
     private
@@ -93,16 +98,16 @@ module Grepfruit
           work = Ractor.receive
           break if work == :quit
 
-          file_path, pattern, exc_lines, count = work
+          file_path, match_path, pattern, exc_lines, count = work
           file_results, has_matches, match_count = [], false, 0
 
           begin
             File.foreach(file_path).with_index do |line, line_num|
               next unless line.valid_encoding? && line.match?(pattern)
 
-              next if exc_lines.any? { "#{file_path}:#{line_num + 1}".end_with?(_1) }
+              next if exc_lines.include?(line_num + 1)
 
-              file_results << [file_path, line_num + 1, line] unless count
+              file_results << [match_path, line_num + 1, line] unless count
               has_matches = true
               match_count += 1
             end
@@ -116,10 +121,10 @@ module Grepfruit
     end
 
     def assign_file_to_worker(worker, port, file_enumerator, active_workers, results)
-      file_path = get_next_file(file_enumerator)
+      file_path, match_path, file_excluded_lines = get_next_file(file_enumerator)
       return unless file_path
 
-      RactorCompat.send_work(worker, [file_path, regex, excluded_lines, count])
+      RactorCompat.send_work(worker, [file_path, match_path, regex, file_excluded_lines, count])
       active_workers[worker] = port
       results.total_files += 1
     end
@@ -135,29 +140,37 @@ module Grepfruit
     end
 
     def create_file_enumerator
+      relative_base = File.join(File.directory?(path) ? path : File.dirname(path), "")
+
       Enumerator.new do |yielder|
         Find.find(path) do |file_path|
           is_file = File.file?(file_path)
+          rel_path = file_path.delete_prefix(relative_base)
+          name = File.basename(file_path)
 
-          Find.prune if file_path != path && excluded_path?(is_file, file_path, file_path.delete_prefix("#{path}/"))
+          Find.prune if file_path != path && excluded_path?(is_file, rel_path, name)
 
           next unless is_file && File.readable?(file_path)
 
-          yielder << file_path
+          file_excluded_lines = excluded_lines.filter_map { |pattern, line| line if matches_pattern?(pattern, rel_path, name) }
+
+          yielder << [file_path, relative_paths ? rel_path : file_path, file_excluded_lines]
         end
       end
     end
 
-    def excluded_path?(is_file, file_path, rel_path)
-      (is_file && inclusions.any? && !matches_pattern?(inclusions, rel_path)) ||
-        matches_pattern?(excluded_paths, rel_path) ||
-        (!search_hidden && File.basename(file_path).start_with?("."))
+    def excluded_path?(is_file, rel_path, name)
+      (is_file && inclusions.any? && !matches_any?(inclusions, rel_path, name)) ||
+        matches_any?(excluded_paths, rel_path, name) ||
+        (!search_hidden && name.start_with?("."))
     end
 
-    def matches_pattern?(pattern_list, path)
-      pattern_list.any? do |pattern|
-        File.fnmatch?(pattern, path, File::FNM_PATHNAME) || File.fnmatch?(pattern, File.basename(path))
-      end
+    def matches_any?(patterns, rel_path, name)
+      patterns.any? { matches_pattern?(_1, rel_path, name) }
+    end
+
+    def matches_pattern?(pattern, rel_path, name)
+      File.fnmatch?(pattern, rel_path, File::FNM_PATHNAME | File::FNM_DOTMATCH) || File.fnmatch?(pattern, name, File::FNM_DOTMATCH)
     end
 
     def processed_line(line)

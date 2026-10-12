@@ -17,13 +17,16 @@ module Grepfruit
       option :jobs, aliases: ["-j"], type: :integer, desc: "Number of parallel workers (default: all CPU cores, use 1 for sequential)"
       option :json, type: :flag, default: false, desc: "Output results in JSON format"
       option :count, aliases: ["-c"], type: :flag, default: false, desc: "Show only counts, not match details"
+      option :relative_paths, aliases: ["-p"], type: :flag, default: false, desc: "Show match paths relative to the search directory"
 
       def call(path: ".", **options)
         error_exit("You must specify a regex pattern using the -r or --regex option.") unless options[:regex]
         error_exit("Jobs must be at least 1") if options[:jobs] && options[:jobs].to_i < 1
+        error_exit("Exclude must contain only relative paths") if options[:exclude].any? { File.absolute_path?(_1) }
+        error_exit("Include must contain only relative paths") if options[:include].any? { File.absolute_path?(_1) }
 
         begin
-          regex_pattern = Regexp.new(options[:regex])
+          regex_pattern = Regexp.new(options[:regex]).freeze
         rescue RegexpError => e
           error_exit("Invalid regex pattern - #{e.message}")
         end
@@ -37,7 +40,8 @@ module Grepfruit
           search_hidden: options[:search_hidden],
           jobs: options[:jobs]&.to_i,
           json: options[:json],
-          count: options[:count]
+          count: options[:count],
+          relative_paths: options[:relative_paths]
         ).execute
       end
 
