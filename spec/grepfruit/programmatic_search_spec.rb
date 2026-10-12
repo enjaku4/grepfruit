@@ -222,6 +222,28 @@ RSpec.describe Grepfruit::ProgrammaticSearch do
         expect(result[:summary][:total_matches]).to eq(15)
       end
 
+      it "excludes several lines of the same file" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /TODO/,
+          exclude: ["bar.txt:3", "bar.txt:14"]
+        )
+
+        expect(result[:summary][:total_matches]).to eq(14)
+        expect(result[:matches].select { |m| m[:file].end_with?("bar.txt") }.map { |m| m[:line] }).to eq([7])
+      end
+
+      it "excludes a line only in the named file" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /TODO/,
+          exclude: ["bad.yml:21"]
+        )
+
+        expect(result[:summary][:total_matches]).to eq(15)
+        expect(result[:matches]).to include(hash_including(file: File.expand_path("./spec/test_dataset/baz.py"), line: 21))
+      end
+
       it "excludes a line by path relative to the search directory" do
         result = Grepfruit.search(
           path: "./spec/test_dataset",

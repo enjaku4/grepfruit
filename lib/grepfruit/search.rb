@@ -11,7 +11,11 @@ module Grepfruit
       @regex = regex
       @exclusions = exclude
       @inclusions = include
-      @excluded_lines, @excluded_paths = exclude.partition { _1.split("/").last.include?(":") }
+      line_exclusions, @excluded_paths = exclude.partition { _1.split("/").last.include?(":") }
+      @excluded_lines = line_exclusions.map do |exclusion|
+        file, _, line = exclusion.rpartition(":")
+        [file, line.to_i]
+      end
       @truncate = truncate
       @search_hidden = search_hidden
       @jobs = jobs || Etc.nprocessors
@@ -94,14 +98,14 @@ module Grepfruit
           work = Ractor.receive
           break if work == :quit
 
-          file_path, rel_path, match_path, pattern, exc_lines, count = work
+          file_path, match_path, pattern, exc_lines, count = work
           file_results, has_matches, match_count = [], false, 0
 
           begin
             File.foreach(file_path).with_index do |line, line_num|
               next unless line.valid_encoding? && line.match?(pattern)
 
-              next if exc_lines.any? { "#{rel_path}:#{line_num + 1}".end_with?(_1) }
+              next if exc_lines.include?(line_num + 1)
 
               file_results << [match_path, line_num + 1, line] unless count
               has_matches = true
@@ -120,7 +124,9 @@ module Grepfruit
       file_path, rel_path = get_next_file(file_enumerator)
       return unless file_path
 
-      RactorCompat.send_work(worker, [file_path, rel_path, relative_paths ? rel_path : file_path, regex, excluded_lines, count])
+      file_excluded_lines = excluded_lines.filter_map { |file, line| line if rel_path.end_with?(file) }
+
+      RactorCompat.send_work(worker, [file_path, relative_paths ? rel_path : file_path, regex, file_excluded_lines, count])
       active_workers[worker] = port
       results.total_files += 1
     end
