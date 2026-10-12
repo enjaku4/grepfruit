@@ -161,6 +161,98 @@ RSpec.describe Grepfruit::ProgrammaticSearch do
       expect(result[:matches][0][:content]).to eq("# TODO: Add configuration for cache settings")
     end
 
+    describe "relative paths" do
+      it "returns absolute match paths by default" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /TODO/
+        )
+
+        expect(result[:matches].map { |m| m[:file] }.uniq).to contain_exactly(
+          File.expand_path("./spec/test_dataset/bar.txt"),
+          File.expand_path("./spec/test_dataset/baz.py"),
+          File.expand_path("./spec/test_dataset/foo.md"),
+          File.expand_path("./spec/test_dataset/folder/bad.yml")
+        )
+      end
+
+      it "returns match paths relative to the search directory when relative_paths is true" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /TODO/,
+          relative_paths: true
+        )
+
+        expect(result[:search][:path]).to eq(File.expand_path("./spec/test_dataset"))
+        expect(result[:matches].map { |m| m[:file] }.uniq).to contain_exactly("bar.txt", "baz.py", "foo.md", "folder/bad.yml")
+      end
+
+      it "returns the file name when searching a single file with relative_paths" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset/folder/bad.yml",
+          regex: /TODO/,
+          relative_paths: true
+        )
+
+        expect(result[:search][:path]).to eq(File.expand_path("./spec/test_dataset/folder/bad.yml"))
+        expect(result[:matches].map { |m| m[:file] }).to eq(["bad.yml"])
+      end
+
+      it "respects line exclusions when relative_paths is true" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /TODO/,
+          exclude: ["bar.txt:14"],
+          relative_paths: true
+        )
+
+        expect(result[:summary][:total_matches]).to eq(15)
+        expect(result[:matches]).not_to include(hash_including(file: "bar.txt", line: 14))
+      end
+    end
+
+    describe "line exclusions" do
+      it "excludes a line by file name" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /TODO/,
+          exclude: ["bar.txt:14"]
+        )
+
+        expect(result[:summary][:total_matches]).to eq(15)
+      end
+
+      it "excludes a line by path relative to the search directory" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /TODO/,
+          exclude: ["folder/bad.yml:21"]
+        )
+
+        expect(result[:summary][:total_matches]).to eq(15)
+      end
+
+      it "does not exclude a line by path that reaches above the search directory" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /TODO/,
+          exclude: ["test_dataset/bar.txt:14"]
+        )
+
+        expect(result[:summary][:total_matches]).to eq(16)
+      end
+
+      it "excludes a line by file name when searching a single file" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset/folder/bad.yml",
+          regex: /TODO/,
+          exclude: ["bad.yml:21"]
+        )
+
+        expect(result[:summary][:total_matches]).to eq(0)
+      end
+    end
+
     describe "count mode" do
       it "returns result without matches key when count is true" do
         result = Grepfruit.search(
@@ -236,6 +328,24 @@ RSpec.describe Grepfruit::ProgrammaticSearch do
         end.to raise_error(ArgumentError, "include must be an array")
       end
 
+      it "raises ArgumentError when exclude contains an absolute path" do
+        expect do
+          Grepfruit.search(path: "./spec/test_dataset", regex: /TODO/, exclude: ["folder", "/tmp/foo"])
+        end.to raise_error(ArgumentError, "exclude must contain only relative paths")
+      end
+
+      it "raises ArgumentError when exclude contains an absolute path with a line" do
+        expect do
+          Grepfruit.search(path: "./spec/test_dataset", regex: /TODO/, exclude: ["/tmp/foo.txt:14"])
+        end.to raise_error(ArgumentError, "exclude must contain only relative paths")
+      end
+
+      it "raises ArgumentError when include contains an absolute path" do
+        expect do
+          Grepfruit.search(path: "./spec/test_dataset", regex: /TODO/, include: ["*.rb", "/tmp/foo"])
+        end.to raise_error(ArgumentError, "include must contain only relative paths")
+      end
+
       it "raises ArgumentError when truncate is not a positive integer" do
         expect do
           Grepfruit.search(path: "./spec/test_dataset", regex: /TODO/, truncate: -5)
@@ -258,6 +368,12 @@ RSpec.describe Grepfruit::ProgrammaticSearch do
         expect do
           Grepfruit.search(path: "./spec/test_dataset", regex: /TODO/, count: "yes")
         end.to raise_error(ArgumentError, "count must be a boolean")
+      end
+
+      it "raises ArgumentError when relative_paths is not a boolean" do
+        expect do
+          Grepfruit.search(path: "./spec/test_dataset", regex: /TODO/, relative_paths: "yes")
+        end.to raise_error(ArgumentError, "relative_paths must be a boolean")
       end
 
       it "raises ArgumentError when path does not exist" do

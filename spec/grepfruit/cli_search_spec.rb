@@ -288,6 +288,26 @@ RSpec.describe Grepfruit::CliSearch do
       it { is_expected.to include("Error: Jobs must be at least 1") }
     end
 
+    context "when exclude contains an absolute path" do
+      subject { `./exe/grepfruit search -r 'TODO' -e 'folder,/tmp/foo' ./spec/test_dataset` }
+
+      it { is_expected.to include("Error: Exclude must contain only relative paths") }
+      it { is_expected.not_to include("Searching for") }
+    end
+
+    context "when exclude contains an absolute path with a line" do
+      subject { `./exe/grepfruit search -r 'TODO' -e '/tmp/foo.txt:14' ./spec/test_dataset` }
+
+      it { is_expected.to include("Error: Exclude must contain only relative paths") }
+    end
+
+    context "when include contains an absolute path" do
+      subject { `./exe/grepfruit search -r 'TODO' -i '*.rb,/tmp/foo' ./spec/test_dataset` }
+
+      it { is_expected.to include("Error: Include must contain only relative paths") }
+      it { is_expected.not_to include("Searching for") }
+    end
+
     context "when searching non-existent path" do
       subject { `./exe/grepfruit search -r 'TODO' ./nonexistent 2>&1` }
 
@@ -470,6 +490,56 @@ RSpec.describe Grepfruit::CliSearch do
     it "exits with code 0 when no matches are found" do
       system("./exe/grepfruit search -r 'NONEXISTENT' --count ./spec/test_dataset > /dev/null")
       expect($?.exitstatus).to eq(0)
+    end
+  end
+
+  describe "relative paths" do
+    let(:dataset_path) { File.expand_path("./spec/test_dataset") }
+    let(:file_path) { "#{dataset_path}/folder/bad.yml" }
+
+    context "when no flag is used with a directory" do
+      subject { `./exe/grepfruit search -r 'TODO' ./spec/test_dataset` }
+
+      it { is_expected.to include("Searching for /TODO/ in #{dataset_path.inspect}...") }
+      it { is_expected.to include("\e[36m#{file_path}:21\e[0m") }
+    end
+
+    context "when no flag is used with a single file" do
+      subject { `./exe/grepfruit search -r 'TODO' ./spec/test_dataset/folder/bad.yml` }
+
+      it { is_expected.to include("Searching for /TODO/ in #{file_path.inspect}...") }
+      it { is_expected.to include("\e[36m#{file_path}:21\e[0m") }
+    end
+
+    context "when --relative-paths flag is used with a directory" do
+      subject { `./exe/grepfruit search -r 'TODO' --relative-paths ./spec/test_dataset` }
+
+      it { is_expected.to include("Searching for /TODO/ in #{dataset_path.inspect}...") }
+      it { is_expected.to include("\e[36mfolder/bad.yml:21\e[0m") }
+      it { is_expected.to include("\e[36mbar.txt:3\e[0m") }
+    end
+
+    context "when --relative-paths flag is used with a single file" do
+      subject { `./exe/grepfruit search -r 'TODO' --relative-paths ./spec/test_dataset/folder/bad.yml` }
+
+      it { is_expected.to include("Searching for /TODO/ in #{file_path.inspect}...") }
+      it { is_expected.to include("\e[36mbad.yml:21\e[0m") }
+    end
+
+    context "when -p short flag is used" do
+      subject { `./exe/grepfruit search -r 'TODO' -p ./spec/test_dataset` }
+
+      it { is_expected.to include("\e[36mfolder/bad.yml:21\e[0m") }
+    end
+
+    context "when --relative-paths is combined with --json" do
+      subject { `./exe/grepfruit search -r 'TODO' --relative-paths --json ./spec/test_dataset` }
+
+      it "keeps the search path absolute and returns relative match paths" do
+        json = JSON.parse(subject)
+        expect(json["search"]["path"]).to eq(dataset_path)
+        expect(json["matches"].map { |m| m["file"] }.uniq).to contain_exactly("bar.txt", "baz.py", "foo.md", "folder/bad.yml")
+      end
     end
   end
 end

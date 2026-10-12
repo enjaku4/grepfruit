@@ -4,9 +4,9 @@ require_relative "ractor_compat"
 
 module Grepfruit
   class Search
-    attr_reader :path, :regex, :exclusions, :inclusions, :excluded_paths, :excluded_lines, :truncate, :search_hidden, :jobs, :json, :count
+    attr_reader :path, :regex, :exclusions, :inclusions, :excluded_paths, :excluded_lines, :truncate, :search_hidden, :jobs, :json, :count, :relative_paths
 
-    def initialize(path:, regex:, exclude:, include:, truncate:, search_hidden:, jobs:, json: false, count: false)
+    def initialize(path:, regex:, exclude:, include:, truncate:, search_hidden:, jobs:, json: false, count: false, relative_paths: false)
       @path = File.expand_path(path)
       @regex = regex
       @exclusions = exclude
@@ -17,6 +17,7 @@ module Grepfruit
       @jobs = jobs || Etc.nprocessors
       @json = json
       @count = count
+      @relative_paths = relative_paths
     end
 
     private
@@ -93,16 +94,16 @@ module Grepfruit
           work = Ractor.receive
           break if work == :quit
 
-          file_path, pattern, exc_lines, count = work
+          file_path, rel_path, match_path, pattern, exc_lines, count = work
           file_results, has_matches, match_count = [], false, 0
 
           begin
             File.foreach(file_path).with_index do |line, line_num|
               next unless line.valid_encoding? && line.match?(pattern)
 
-              next if exc_lines.any? { "#{file_path}:#{line_num + 1}".end_with?(_1) }
+              next if exc_lines.any? { "#{rel_path}:#{line_num + 1}".end_with?(_1) }
 
-              file_results << [file_path, line_num + 1, line] unless count
+              file_results << [match_path, line_num + 1, line] unless count
               has_matches = true
               match_count += 1
             end
@@ -116,10 +117,10 @@ module Grepfruit
     end
 
     def assign_file_to_worker(worker, port, file_enumerator, active_workers, results)
-      file_path = get_next_file(file_enumerator)
+      file_path, rel_path = get_next_file(file_enumerator)
       return unless file_path
 
-      RactorCompat.send_work(worker, [file_path, regex, excluded_lines, count])
+      RactorCompat.send_work(worker, [file_path, rel_path, relative_paths ? rel_path : file_path, regex, excluded_lines, count])
       active_workers[worker] = port
       results.total_files += 1
     end
@@ -135,15 +136,18 @@ module Grepfruit
     end
 
     def create_file_enumerator
+      relative_base = File.join(File.directory?(path) ? path : File.dirname(path), "")
+
       Enumerator.new do |yielder|
         Find.find(path) do |file_path|
           is_file = File.file?(file_path)
+          rel_path = file_path.delete_prefix(relative_base)
 
-          Find.prune if file_path != path && excluded_path?(is_file, file_path, file_path.delete_prefix("#{path}/"))
+          Find.prune if file_path != path && excluded_path?(is_file, file_path, rel_path)
 
           next unless is_file && File.readable?(file_path)
 
-          yielder << file_path
+          yielder << [file_path, rel_path]
         end
       end
     end
