@@ -2,6 +2,8 @@
 
 - Added --relative-paths option to return match paths relative to the search directory
 - Fixed absolute paths in --exclude and --include being silently ignored instead of rejected
+- Fixed line exclusions also applying to files whose path only ends with the given path
+- Fixed wildcards in --exclude and --include not matching hidden files when --search-hidden is enabled
 - Minor performance improvements
 
 ## v4.0.2
