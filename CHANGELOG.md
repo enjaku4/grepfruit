@@ -1,6 +1,7 @@
 ## v4.1.0
 
 - Added --relative-paths option to return match paths relative to the search directory
+- Fixed absolute paths in --exclude and --include being silently ignored instead of rejected
 
 ## v4.0.2
 
