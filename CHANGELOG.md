@@ -1,3 +1,7 @@
+## v4.1.0
+
+- Added --relative-paths option to return match paths relative to the search directory
+
 ## v4.0.2
 
 - Fixed searches silently checking no files when the search path itself was hidden or matched an exclusion
