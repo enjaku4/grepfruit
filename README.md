@@ -92,8 +92,8 @@ If no PATH is specified, Grepfruit searches the current directory.
 | Option | Description |
 |--------|-------------|
 | `-r, --regex REGEX` | Regex pattern to search for (required) |
-| `-e, --exclude x,y,z` | Comma-separated list of files, directories, or lines to exclude |
-| `-i, --include x,y,z` | Comma-separated list of file patterns to include (only these files will be searched) |
+| `-e, --exclude x,y,z` | Comma-separated list of files, directories, or lines to exclude: names, wildcards, paths relative to the search directory, or `file:line` |
+| `-i, --include x,y,z` | Comma-separated list of files to include: names, wildcards, or paths relative to the search directory |
 | `-t, --truncate N` | Truncate search result output to N characters |
 | `-j, --jobs N` | Number of parallel workers (default: number of CPU cores) |
 | `-c, --count` | Show only match counts, not match details |
