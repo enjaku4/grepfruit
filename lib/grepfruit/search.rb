@@ -159,14 +159,16 @@ module Grepfruit
     end
 
     def excluded_path?(is_file, file_path, rel_path)
-      (is_file && inclusions.any? && !matches_pattern?(inclusions, rel_path)) ||
-        matches_pattern?(excluded_paths, rel_path) ||
-        (!search_hidden && File.basename(file_path).start_with?("."))
+      name = File.basename(file_path)
+
+      (is_file && inclusions.any? && !matches_pattern?(inclusions, rel_path, name)) ||
+        matches_pattern?(excluded_paths, rel_path, name) ||
+        (!search_hidden && name.start_with?("."))
     end
 
-    def matches_pattern?(pattern_list, path)
+    def matches_pattern?(pattern_list, path, name)
       pattern_list.any? do |pattern|
-        File.fnmatch?(pattern, path, File::FNM_PATHNAME) || File.fnmatch?(pattern, File.basename(path))
+        File.fnmatch?(pattern, path, File::FNM_PATHNAME) || File.fnmatch?(pattern, name)
       end
     end
 
