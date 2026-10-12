@@ -26,7 +26,7 @@ module Grepfruit
         error_exit("Include must contain only relative paths") if options[:include].any? { File.absolute_path?(_1) }
 
         begin
-          regex_pattern = Regexp.new(options[:regex])
+          regex_pattern = Regexp.new(options[:regex]).freeze
         rescue RegexpError => e
           error_exit("Invalid regex pattern - #{e.message}")
         end
