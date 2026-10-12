@@ -103,6 +103,52 @@ RSpec.describe Grepfruit::ProgrammaticSearch do
       expect(result_with_hidden[:summary][:total_matches]).to be > result_without_hidden[:summary][:total_matches]
     end
 
+    it "matches hidden files with wildcard include patterns when search_hidden is true" do
+      result = Grepfruit.search(
+        path: "./spec/test_dataset",
+        regex: /TODO/,
+        include: ["*"],
+        search_hidden: true
+      )
+
+      expect(result[:summary][:files_checked]).to eq(5)
+      expect(result[:matches]).to include(hash_including(file: File.expand_path("./spec/test_dataset/.hidden")))
+    end
+
+    it "matches hidden files with wildcard exclude patterns when search_hidden is true" do
+      result = Grepfruit.search(
+        path: "./spec/test_dataset",
+        regex: /TODO/,
+        exclude: ["*hidden"],
+        search_hidden: true
+      )
+
+      expect(result[:summary][:files_checked]).to eq(4)
+      expect(result[:matches]).not_to include(hash_including(file: File.expand_path("./spec/test_dataset/.hidden")))
+    end
+
+    it "matches hidden files with wildcard line exclusions when search_hidden is true" do
+      result = Grepfruit.search(
+        path: "./spec/test_dataset",
+        regex: /TODO/,
+        exclude: ["*:2"],
+        search_hidden: true
+      )
+
+      expect(result[:matches].select { |m| m[:file].end_with?(".hidden") }.map { |m| m[:line] }).to eq([4])
+    end
+
+    it "does not search hidden files matched by a wildcard when search_hidden is false" do
+      result = Grepfruit.search(
+        path: "./spec/test_dataset",
+        regex: /TODO/,
+        include: ["*"]
+      )
+
+      expect(result[:summary][:files_checked]).to eq(4)
+      expect(result[:matches]).not_to include(hash_including(file: File.expand_path("./spec/test_dataset/.hidden")))
+    end
+
     it "searches a hidden file when it is the explicit target" do
       result = Grepfruit.search(
         path: "./spec/test_dataset/.hidden",
@@ -242,6 +288,38 @@ RSpec.describe Grepfruit::ProgrammaticSearch do
 
         expect(result[:summary][:total_matches]).to eq(15)
         expect(result[:matches]).to include(hash_including(file: File.expand_path("./spec/test_dataset/baz.py"), line: 21))
+      end
+
+      it "does not exclude a line by partial file name" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /TODO/,
+          exclude: ["ar.txt:14"]
+        )
+
+        expect(result[:summary][:total_matches]).to eq(16)
+      end
+
+      it "does not exclude a line by partial directory name" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /TODO/,
+          exclude: ["older/bad.yml:21"]
+        )
+
+        expect(result[:summary][:total_matches]).to eq(16)
+      end
+
+      it "excludes a line by wildcard pattern" do
+        result = Grepfruit.search(
+          path: "./spec/test_dataset",
+          regex: /TODO/,
+          exclude: ["*.txt:14", "folder/*.yml:21"]
+        )
+
+        expect(result[:summary][:total_matches]).to eq(14)
+        expect(result[:matches]).not_to include(hash_including(line: 14))
+        expect(result[:matches].select { |m| m[:line] == 21 }.map { |m| m[:file] }).to eq([File.expand_path("./spec/test_dataset/baz.py")])
       end
 
       it "excludes a line by path relative to the search directory" do

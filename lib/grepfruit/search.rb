@@ -13,8 +13,8 @@ module Grepfruit
       @inclusions = include
       line_exclusions, @excluded_paths = exclude.partition { _1.split("/").last.include?(":") }
       @excluded_lines = line_exclusions.map do |exclusion|
-        file, _, line = exclusion.rpartition(":")
-        [file, line.to_i]
+        pattern, _, line = exclusion.rpartition(":")
+        [pattern, line.to_i]
       end
       @truncate = truncate
       @search_hidden = search_hidden
@@ -121,12 +121,10 @@ module Grepfruit
     end
 
     def assign_file_to_worker(worker, port, file_enumerator, active_workers, results)
-      file_path, rel_path = get_next_file(file_enumerator)
+      file_path, match_path, file_excluded_lines = get_next_file(file_enumerator)
       return unless file_path
 
-      file_excluded_lines = excluded_lines.filter_map { |file, line| line if rel_path.end_with?(file) }
-
-      RactorCompat.send_work(worker, [file_path, relative_paths ? rel_path : file_path, regex, file_excluded_lines, count])
+      RactorCompat.send_work(worker, [file_path, match_path, regex, file_excluded_lines, count])
       active_workers[worker] = port
       results.total_files += 1
     end
@@ -148,28 +146,31 @@ module Grepfruit
         Find.find(path) do |file_path|
           is_file = File.file?(file_path)
           rel_path = file_path.delete_prefix(relative_base)
+          name = File.basename(file_path)
 
-          Find.prune if file_path != path && excluded_path?(is_file, file_path, rel_path)
+          Find.prune if file_path != path && excluded_path?(is_file, rel_path, name)
 
           next unless is_file && File.readable?(file_path)
 
-          yielder << [file_path, rel_path]
+          file_excluded_lines = excluded_lines.filter_map { |pattern, line| line if matches_pattern?(pattern, rel_path, name) }
+
+          yielder << [file_path, relative_paths ? rel_path : file_path, file_excluded_lines]
         end
       end
     end
 
-    def excluded_path?(is_file, file_path, rel_path)
-      name = File.basename(file_path)
-
-      (is_file && inclusions.any? && !matches_pattern?(inclusions, rel_path, name)) ||
-        matches_pattern?(excluded_paths, rel_path, name) ||
+    def excluded_path?(is_file, rel_path, name)
+      (is_file && inclusions.any? && !matches_any?(inclusions, rel_path, name)) ||
+        matches_any?(excluded_paths, rel_path, name) ||
         (!search_hidden && name.start_with?("."))
     end
 
-    def matches_pattern?(pattern_list, path, name)
-      pattern_list.any? do |pattern|
-        File.fnmatch?(pattern, path, File::FNM_PATHNAME) || File.fnmatch?(pattern, name)
-      end
+    def matches_any?(patterns, rel_path, name)
+      patterns.any? { matches_pattern?(_1, rel_path, name) }
+    end
+
+    def matches_pattern?(pattern, rel_path, name)
+      File.fnmatch?(pattern, rel_path, File::FNM_PATHNAME | File::FNM_DOTMATCH) || File.fnmatch?(pattern, name, File::FNM_DOTMATCH)
     end
 
     def processed_line(line)
