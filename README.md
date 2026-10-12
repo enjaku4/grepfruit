@@ -40,7 +40,8 @@ result = Grepfruit.search(
   truncate: 80,
   search_hidden: false,
   jobs: 4,
-  count: false
+  count: false,
+  relative_paths: false
 )
 ```
 
@@ -65,6 +66,8 @@ Returns a hash (when `count: true`, the `matches` key is omitted):
   ]
 }
 ```
+
+Match paths are absolute by default. With `relative_paths: true`, they are relative to the search directory, or just the file name when a single file is searched. `search.path` is always absolute.
 
 All keyword arguments correspond to their CLI flag counterparts.
 
@@ -94,6 +97,7 @@ If no PATH is specified, Grepfruit searches the current directory.
 | `-t, --truncate N` | Truncate search result output to N characters |
 | `-j, --jobs N` | Number of parallel workers (default: number of CPU cores) |
 | `-c, --count` | Show only match counts, not match details |
+| `-p, --relative-paths` | Show match paths relative to the search directory |
 | `--search-hidden` | Include hidden files and directories in search |
 | `--json` | Output results in JSON format |
 
@@ -198,6 +202,15 @@ Show only match counts without displaying the actual matches:
 ```bash
 grepfruit search -r 'TODO' --count
 grepfruit search -r 'FIXME|TODO' -c -e 'vendor,node_modules'
+```
+
+**Relative Paths**
+
+Match paths are absolute by default. Show them relative to the search directory instead:
+
+```bash
+grepfruit search -r 'TODO' --relative-paths dev/my_app
+grepfruit search -r 'TODO' -p dev/my_app/README.md  # Shows just the file name
 ```
 
 **Parallel Processing**
