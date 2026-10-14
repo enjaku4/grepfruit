@@ -7,9 +7,9 @@ module Grepfruit
     end
 
     if defined?(::Ractor::Port)
-      def create_worker(&)
+      def create_worker(*, &)
         port = Ractor::Port.new
-        worker = Ractor.new(port, &)
+        worker = Ractor.new(port, *, &)
         [worker, port]
       end
 
@@ -24,8 +24,8 @@ module Grepfruit
         [worker, result]
       end
     else
-      def create_worker(&)
-        worker = Ractor.new(&)
+      def create_worker(*, &)
+        worker = Ractor.new(nil, *, &)
         [worker, nil]
       end
 

@@ -1,9 +1,11 @@
-require "find"
 require "etc"
 require_relative "ractor_compat"
+require_relative "search_worker"
 
 module Grepfruit
   class Search
+    BATCH_SIZE = 32
+
     attr_reader :path, :regex, :exclusions, :inclusions, :excluded_paths, :excluded_lines, :truncate, :search_hidden, :jobs, :json, :count, :relative_paths
 
     def initialize(path:, regex:, exclude:, include:, truncate:, search_hidden:, jobs:, json: false, count: false, relative_paths: false)
@@ -56,121 +58,89 @@ module Grepfruit
 
     def execute_search
       results = SearchResults.new
-      workers_and_ports = Array.new(jobs) { create_persistent_worker }
-      file_enumerator = create_file_enumerator
+      relative_base = File.join(File.directory?(path) ? path : File.dirname(path), "")
+      workers_and_ports = Array.new(jobs) { create_persistent_worker(relative_base) }
+      idle_workers = workers_and_ports.dup
       active_workers = {}
+      assigned_tasks = {}
+      dirs, files, matched_files = [], [], []
 
-      workers_and_ports.each do |worker, port|
-        assign_file_to_worker(worker, port, file_enumerator, active_workers, results)
-      end
+      enqueue_root(relative_base, dirs, files)
 
-      while active_workers.any?
+      loop do
+        while idle_workers.any? && (task = next_task(dirs, files))
+          worker, port = idle_workers.pop
+          RactorCompat.send_work(worker, task)
+          active_workers[worker] = port
+          assigned_tasks[worker] = task
+        end
+
+        break if active_workers.empty?
+
         ready_worker, worker_result = RactorCompat.select_ready(active_workers)
-        port = active_workers.delete(ready_worker)
+        idle_workers << [ready_worker, active_workers.delete(ready_worker)]
+        task, payload = assigned_tasks.delete(ready_worker)
 
-        has_matches = process_worker_result(worker_result, results)
-        results.increment_files_with_matches if has_matches
-        emit_file_progress(has_matches)
-        assign_file_to_worker(ready_worker, port, file_enumerator, active_workers, results)
+        if task == :list
+          subdirs, entries = worker_result
+          dirs.concat(subdirs)
+          files.concat(entries)
+        else
+          process_search_results(payload, worker_result, results, matched_files)
+        end
       end
 
       shutdown_workers(workers_and_ports.map(&:first))
 
+      # Workers finish in any order; sorting by path components restores Find.find order, the order a single worker reports
+      matched_files.sort_by { |rel_path, _| rel_path.split("/") }.each { |_, file_results| results.add_raw_matches(file_results) }
+
       results
     end
 
-    def process_worker_result(worker_result, results)
-      file_results, has_matches, match_count = worker_result
+    def process_search_results(entries, worker_result, results, matched_files)
+      entries.zip(worker_result) do |(_, rel_path), file_result|
+        next unless file_result
 
-      return false unless has_matches
+        file_results, match_count = file_result
+        has_matches = match_count.positive?
+        results.total_files += 1
 
-      results.add_match_count(match_count)
-      results.add_raw_matches(file_results)
+        if has_matches
+          results.add_match_count(match_count)
+          results.increment_files_with_matches
+          matched_files << [rel_path, file_results]
+        end
 
-      true
+        emit_file_progress(has_matches)
+      end
     end
 
     def emit_file_progress(_has_matches); end
 
-    def create_persistent_worker
-      RactorCompat.create_worker do |port|
-        loop do
-          work = Ractor.receive
-          break if work == :quit
+    def create_persistent_worker(relative_base)
+      encoding = path.encoding == Encoding::US_ASCII ? Encoding.find("filesystem") : path.encoding
 
-          file_path, match_path, pattern, exc_lines, count = work
-          file_results, has_matches, match_count = [], false, 0
-
-          begin
-            File.foreach(file_path).with_index do |line, line_num|
-              next unless line.valid_encoding? && line.match?(pattern)
-
-              next if exc_lines.include?(line_num + 1)
-
-              file_results << [match_path, line_num + 1, line] unless count
-              has_matches = true
-              match_count += 1
-            end
-          rescue Errno::ENOENT, Errno::EACCES, Errno::EISDIR
-            file_results, has_matches, match_count = [], false, 0
-          end
-
-          RactorCompat.yield_result(port, [file_results, has_matches, match_count])
-        end
+      RactorCompat.create_worker(regex, relative_base, encoding, excluded_paths, excluded_lines, inclusions, search_hidden, count, relative_paths) do |port, *config|
+        SearchWorker.run(port, *config)
       end
     end
 
-    def assign_file_to_worker(worker, port, file_enumerator, active_workers, results)
-      file_path, match_path, file_excluded_lines = get_next_file(file_enumerator)
-      return unless file_path
-
-      RactorCompat.send_work(worker, [file_path, match_path, regex, file_excluded_lines, count])
-      active_workers[worker] = port
-      results.total_files += 1
+    def enqueue_root(relative_base, dirs, files)
+      files << SearchWorker.file_entry(path, path.delete_prefix(relative_base), File.basename(path), excluded_lines) if File.file?(path) && File.readable?(path)
+      dirs << path if File.lstat(path).directory?
     end
 
-    def get_next_file(enumerator)
-      enumerator.next
-    rescue StopIteration
-      nil
+    def next_task(dirs, files)
+      if files.size >= BATCH_SIZE || (dirs.empty? && files.any?)
+        [:search, files.pop([BATCH_SIZE, files.size.fdiv(jobs).ceil].min)]
+      elsif dirs.any?
+        [:list, dirs.pop]
+      end
     end
 
     def shutdown_workers(workers)
       workers.each { |worker| worker.send(:quit) }
-    end
-
-    def create_file_enumerator
-      relative_base = File.join(File.directory?(path) ? path : File.dirname(path), "")
-
-      Enumerator.new do |yielder|
-        Find.find(path) do |file_path|
-          is_file = File.file?(file_path)
-          rel_path = file_path.delete_prefix(relative_base)
-          name = File.basename(file_path)
-
-          Find.prune if file_path != path && excluded_path?(is_file, rel_path, name)
-
-          next unless is_file && File.readable?(file_path)
-
-          file_excluded_lines = excluded_lines.filter_map { |pattern, line| line if matches_pattern?(pattern, rel_path, name) }
-
-          yielder << [file_path, relative_paths ? rel_path : file_path, file_excluded_lines]
-        end
-      end
-    end
-
-    def excluded_path?(is_file, rel_path, name)
-      (is_file && inclusions.any? && !matches_any?(inclusions, rel_path, name)) ||
-        matches_any?(excluded_paths, rel_path, name) ||
-        (!search_hidden && name.start_with?("."))
-    end
-
-    def matches_any?(patterns, rel_path, name)
-      patterns.any? { matches_pattern?(_1, rel_path, name) }
-    end
-
-    def matches_pattern?(pattern, rel_path, name)
-      File.fnmatch?(pattern, rel_path, File::FNM_PATHNAME | File::FNM_DOTMATCH) || File.fnmatch?(pattern, name, File::FNM_DOTMATCH)
     end
 
     def processed_line(line)
