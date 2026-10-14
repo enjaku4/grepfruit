@@ -6,6 +6,7 @@ on:
 
 jobs:
   benchmark:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[benchmark]')
     runs-on: ubuntu-latest
 
     name: Benchmark
@@ -20,5 +21,4 @@ jobs:
       - name: Install the latest grepfruit release
         run: gem install grepfruit
       - name: Run benchmark
-        shell: bash
-        run: ruby benchmark/run.rb | tee --append "$GITHUB_STEP_SUMMARY"
+        run: ruby benchmark/run.rb
