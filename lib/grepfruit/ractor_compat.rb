@@ -10,6 +10,7 @@ module Grepfruit
       def create_worker(&)
         port = Ractor::Port.new
         worker = Ractor.new(port, &)
+        worker.monitor(port)
         [worker, port]
       end
 
@@ -21,6 +22,7 @@ module Grepfruit
         ports = workers_and_ports.values
         ready_port, result = Ractor.select(*ports)
         worker = workers_and_ports.key(ready_port)
+        worker.value if result == :aborted
         [worker, result]
       end
     else
