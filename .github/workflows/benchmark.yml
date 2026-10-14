@@ -1,0 +1,24 @@
+name: Benchmark
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+
+    name: Benchmark
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "4.0"
+      - name: Install the latest grepfruit release
+        run: gem install grepfruit
+      - name: Run benchmark
+        shell: bash
+        run: ruby benchmark/run.rb | tee --append "$GITHUB_STEP_SUMMARY"
