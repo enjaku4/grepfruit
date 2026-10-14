@@ -1,3 +1,7 @@
+## v4.1.1
+
+- Fixed the search hanging forever when a worker failed
+
 ## v4.1.0
 
 - Added --relative-paths option to return match paths relative to the search directory
