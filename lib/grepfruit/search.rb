@@ -111,7 +111,7 @@ module Grepfruit
               has_matches = true
               match_count += 1
             end
-          rescue Errno::ENOENT, Errno::EACCES, Errno::EISDIR
+          rescue SystemCallError, EncodingError, Regexp::TimeoutError
             file_results, has_matches, match_count = [], false, 0
           end
 

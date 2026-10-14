@@ -391,6 +391,12 @@ RSpec.describe Grepfruit::ProgrammaticSearch do
       end
     end
 
+    it "skips a file that cannot be searched with the given regex" do
+      result = Grepfruit.search(path: "./spec/test_dataset_non_ascii", regex: Regexp.new("caf\xC3\xA9".b))
+
+      expect(result[:summary]).to include(files_checked: 1, total_matches: 0)
+    end
+
     describe "argument validation" do
       it "raises ArgumentError when regex is nil" do
         expect do
