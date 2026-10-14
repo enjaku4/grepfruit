@@ -68,13 +68,11 @@ module Grepfruit
 
     # Opening the file decides readability instead of File.readable?, whose extra access(2) call cost a fifth of the search
     def search_file(file_path, match_path, file_excluded_lines, regex, count)
-      file = File.open(file_path)
+      File.open(file_path) { search_lines(_1, match_path, file_excluded_lines, regex, count) }
     rescue Errno::EACCES
       nil
     rescue Errno::ENOENT, Errno::EISDIR
       [[], 0]
-    else
-      search_lines(file, match_path, file_excluded_lines, regex, count)
     end
 
     def search_lines(file, match_path, file_excluded_lines, regex, count)
@@ -92,8 +90,6 @@ module Grepfruit
       [file_results, match_count]
     rescue Errno::ENOENT, Errno::EACCES, Errno::EISDIR
       [[], 0]
-    ensure
-      file.close
     end
 
     def excluded_path?(is_file, rel_path, name, excluded_paths, inclusions, search_hidden)
